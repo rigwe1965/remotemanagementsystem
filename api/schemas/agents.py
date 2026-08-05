@@ -41,6 +41,7 @@ class AgentHeartbeatSchema(Schema):
     top_processes = fields.List(fields.Dict(), load_default=None, allow_none=True)
     disks = fields.List(fields.Dict(), load_default=None, allow_none=True)
     agent_version = fields.String(load_default=None, allow_none=True, validate=validate.Length(max=50))
+    cpu_model = fields.String(load_default=None, allow_none=True, validate=validate.Length(max=255))
 
 
 class AgentTaskResultSchema(Schema):

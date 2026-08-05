@@ -160,6 +160,7 @@ def get_hardware_info() -> dict:
         "mac_address": _get_primary_mac(),
         "ip_address": _get_local_ip(),
         "agent_version": "1.0.0",
+        "cpu_model": platform.processor() or None,
     }
 
     if _PLATFORM == "win32":
@@ -266,6 +267,7 @@ def get_metrics() -> dict:
         "uptime_seconds": int(uptime),
         "disks": disks,
         "top_processes": top_procs,
+        "cpu_model": platform.processor() or None,
         **battery,
     }
 

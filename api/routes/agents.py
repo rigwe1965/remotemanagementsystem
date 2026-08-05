@@ -164,6 +164,8 @@ def heartbeat(device_id):
     device.ip_address = request.remote_addr
     if data.get("agent_version"):
         device.agent_version = data["agent_version"]
+    if not device.cpu_model and data.get("cpu_model"):
+        device.cpu_model = data["cpu_model"]
 
     # Determine device status from metrics
     cpu = data.get("cpu_pct", 0)
