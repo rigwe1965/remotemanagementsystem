@@ -40,6 +40,9 @@ logs/
 *.db
 *.sqlite3
 
+# Redis dump
+dump.rdb
+
 # Reports / uploads
 reports/output/
 api/reports/
