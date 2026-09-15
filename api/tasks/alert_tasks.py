@@ -376,6 +376,7 @@ def unlock_expired_accounts(self):
 def deactivate_dormant_accounts(self):
     from extensions import db
     from models.user import User
+    from models.audit import AuditLog
     from sqlalchemy.exc import OperationalError
     from utils.notifications import send_account_deactivated_email, send_dormant_admin_alert
 
@@ -383,7 +384,7 @@ def deactivate_dormant_accounts(self):
     with app.app_context():
         try:
             now = datetime.now(timezone.utc)
-            threshold = now - timedelta(days=30)
+            threshold = now - timedelta(days=60)
 
             dormant = User.query.filter(
                 User.is_active == True,
@@ -397,6 +398,13 @@ def deactivate_dormant_accounts(self):
             deactivated = []
             for user in dormant:
                 user.is_active = False
+                db.session.add(AuditLog(
+                    user_id=None,
+                    action="AUTO_DEACTIVATE_DORMANT",
+                    resource_type="user",
+                    resource_id=user.id,
+                    payload={"email": user.email, "last_login": user.last_login.isoformat() if user.last_login else None},
+                ))
                 send_account_deactivated_email(user.email)
                 deactivated.append(user.email)
                 logger.info("Auto-deactivated dormant account: %s", user.email)
