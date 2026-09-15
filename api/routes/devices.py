@@ -1,10 +1,11 @@
 import json
 from datetime import datetime, timezone, timedelta
 from flask import Blueprint, request, jsonify, Response
-from flask_jwt_extended import jwt_required, get_jwt
+from flask_jwt_extended import jwt_required, get_jwt, get_jwt_identity
 from sqlalchemy import func
 from extensions import db, limiter
 from models.device import Device, DeviceMetrics
+from models.user import User
 from utils.validation import validate_body
 from utils.cache import cache_get_raw, cache_set_raw, cache_delete_pattern
 from schemas.devices import DeviceUpdateSchema, QueueTaskSchema, DeployPatchesSchema
@@ -37,6 +38,31 @@ def _require_role(*roles):
     return None
 
 
+def _client_customer_id_or_error():
+    """For role=client, returns (customer_id, None). For other roles, returns (None, None)
+    meaning unrestricted. Returns (None, error_response) if a client has no customer_id."""
+    claims = get_jwt()
+    if claims.get("role") != "client":
+        return None, None
+    uid = get_jwt_identity()
+    user = db.session.get(User, uid)
+    if not user or not user.customer_id:
+        return None, (jsonify({"error": "No customer assigned to this account"}), 403)
+    return user.customer_id, None
+
+
+def _client_scope_check(device):
+    """Returns a 404 response if a client-role JWT does not own this device, else None."""
+    claims = get_jwt()
+    if claims.get("role") != "client":
+        return None
+    uid = get_jwt_identity()
+    user = db.session.get(User, uid)
+    if not user or device.customer_id != user.customer_id:
+        return jsonify({"error": "Device not found"}), 404
+    return None
+
+
 @devices_bp.route("/", methods=["GET"])
 @jwt_required()
 def list_devices():
@@ -50,6 +76,12 @@ def list_devices():
     platform_filter = request.args.get("platform")
     is_agentless = request.args.get("is_agentless")
     device_type = request.args.get("device_type")
+
+    client_customer_id, err = _client_customer_id_or_error()
+    if err:
+        return err
+    if client_customer_id:
+        customer_id = client_customer_id  # client role: ignore any caller-supplied customer_id
 
     _ck = (f"rmm:devices:list:p{page}:pp{per_page}:c{customer_id or ''}:"
            f"g{group_id or ''}:s{status or ''}:o{is_online or ''}:"
@@ -96,15 +128,20 @@ def list_devices():
 @jwt_required()
 def platform_counts():
     from utils.cache import cache_get, cache_set
-    _CACHE_KEY = "rmm:dash:platform_counts"
+    client_customer_id, err = _client_customer_id_or_error()
+    if err:
+        return err
+
+    _CACHE_KEY = f"rmm:dash:platform_counts:{client_customer_id or 'all'}"
     cached = cache_get(_CACHE_KEY)
     if cached:
         return jsonify(cached), 200
 
-    rows = db.session.execute(
-        db.select(Device.platform, Device.is_agentless, func.count(Device.id))
-        .group_by(Device.platform, Device.is_agentless)
-    ).all()
+    stmt = db.select(Device.platform, Device.is_agentless, func.count(Device.id))
+    if client_customer_id:
+        stmt = stmt.where(Device.customer_id == client_customer_id)
+    stmt = stmt.group_by(Device.platform, Device.is_agentless)
+    rows = db.session.execute(stmt).all()
     by_platform = {}
     agentless_count = 0
     for platform, is_agentless, count in rows:
@@ -121,6 +158,9 @@ def platform_counts():
 @jwt_required()
 def get_device(device_id):
     device = db.get_or_404(Device, device_id)
+    err = _client_scope_check(device)
+    if err:
+        return err
     return jsonify(device.to_dict(include_latest_metrics=True)), 200
 
 
@@ -132,6 +172,9 @@ def update_device(device_id):
     if err:
         return err
     device = db.get_or_404(Device, device_id)
+    err = _client_scope_check(device)
+    if err:
+        return err
     data = request.get_json(silent=True) or {}
     for field in ["display_name", "group_id", "customer_id",
                   "hostname", "platform", "device_type", "vendor"]:
@@ -149,6 +192,9 @@ def delete_device(device_id):
     if err:
         return err
     device = db.get_or_404(Device, device_id)
+    err = _client_scope_check(device)
+    if err:
+        return err
     db.session.delete(device)
     db.session.commit()
     cache_delete_pattern("rmm:devices:list:*")
@@ -158,7 +204,10 @@ def delete_device(device_id):
 @devices_bp.route("/<device_id>/metrics", methods=["GET"])
 @jwt_required()
 def device_metrics(device_id):
-    db.get_or_404(Device, device_id)
+    device = db.get_or_404(Device, device_id)
+    err = _client_scope_check(device)
+    if err:
+        return err
     hours = request.args.get("hours", 24, type=int)
     since = datetime.now(timezone.utc) - timedelta(hours=min(hours, 168))
 
@@ -173,7 +222,10 @@ def device_metrics(device_id):
 @devices_bp.route("/<device_id>/software", methods=["GET"])
 @jwt_required()
 def device_software(device_id):
-    db.get_or_404(Device, device_id)
+    device = db.get_or_404(Device, device_id)
+    err = _client_scope_check(device)
+    if err:
+        return err
     from models.device import InstalledSoftware
     q = request.args.get("q", "")
     query = InstalledSoftware.query.filter_by(device_id=device_id)
@@ -191,6 +243,9 @@ def reboot_device(device_id):
     if err:
         return err
     device = db.get_or_404(Device, device_id)
+    err = _client_scope_check(device)
+    if err:
+        return err
     if not device.is_online:
         return jsonify({"error": "Device is offline"}), 400
     run_id = _queue_builtin_task(device_id, "reboot")
@@ -205,6 +260,9 @@ def shutdown_device(device_id):
     if err:
         return err
     device = db.get_or_404(Device, device_id)
+    err = _client_scope_check(device)
+    if err:
+        return err
     if not device.is_online:
         return jsonify({"error": "Device is offline"}), 400
     run_id = _queue_builtin_task(device_id, "shutdown")
@@ -220,7 +278,10 @@ def queue_device_task(device_id):
     err = _require_role("admin", "technician")
     if err:
         return err
-    db.get_or_404(Device, device_id)
+    device = db.get_or_404(Device, device_id)
+    err = _client_scope_check(device)
+    if err:
+        return err
     data = request.get_json(silent=True) or {}
     task_type = (data.get("task_type") or "").strip()
     if not task_type:
@@ -246,7 +307,10 @@ def deploy_patches_route(device_id):
     err = _require_role("admin", "technician")
     if err:
         return err
-    db.get_or_404(Device, device_id)
+    device = db.get_or_404(Device, device_id)
+    err = _client_scope_check(device)
+    if err:
+        return err
     data = request.get_json(silent=True) or {}
     patch_ids = data.get("patch_ids", [])
     if not patch_ids:
@@ -261,6 +325,9 @@ def deploy_patches_route(device_id):
 def ping_check(device_id):
     """Immediately ping an agentless device and update its online status."""
     device = db.get_or_404(Device, device_id)
+    err = _client_scope_check(device)
+    if err:
+        return err
     if not device.is_agentless or not device.ip_address:
         return jsonify({"error": "Only available for agentless devices with an IP"}), 400
     from tasks.network_tasks import _ping_host
@@ -277,7 +344,10 @@ def ping_check(device_id):
 @jwt_required()
 def get_screenshot(device_id):
     """Return latest screenshot for a device as JPEG/PNG, or 404 if none captured yet."""
-    db.get_or_404(Device, device_id)
+    device = db.get_or_404(Device, device_id)
+    err = _client_scope_check(device)
+    if err:
+        return err
     from pathlib import Path
     from flask import send_file
     screenshots_dir = Path(__file__).parent.parent / "screenshots"

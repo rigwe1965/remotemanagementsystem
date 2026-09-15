@@ -184,6 +184,78 @@ class TestDeviceMetrics:
             _cleanup(app, [dev.id], cust.id, uid)
 
 
+class TestClientScoping:
+    """Regression tests for the cross-tenant leak: client-role JWTs must only see their own customer's devices."""
+
+    def _make_client_user(self, app, customer_id):
+        from extensions import db
+        from models.user import User
+        uid, email, pw = create_user(app, role="client")
+        u = db.session.get(User, uid)
+        u.customer_id = customer_id
+        db.session.commit()
+        return uid, email, pw
+
+    def test_get_device_cross_tenant_blocked(self, app, client):
+        cust_a = _make_customer(app)
+        cust_b = _make_customer(app)
+        dev_b = _make_device(app, cust_b.id)
+        uid, email, pw = self._make_client_user(app, cust_a.id)
+        try:
+            tok = login(client, email, pw).get_json()["access_token"]
+            r = client.get(f"/api/devices/{dev_b.id}", headers=auth_headers(tok))
+            assert r.status_code == 404
+        finally:
+            _cleanup(app, [dev_b.id], cust_a.id, uid)
+            _cleanup(app, [], cust_b.id)
+
+    def test_get_device_same_tenant_allowed(self, app, client):
+        cust_a = _make_customer(app)
+        dev_a = _make_device(app, cust_a.id)
+        uid, email, pw = self._make_client_user(app, cust_a.id)
+        try:
+            tok = login(client, email, pw).get_json()["access_token"]
+            r = client.get(f"/api/devices/{dev_a.id}", headers=auth_headers(tok))
+            assert r.status_code == 200
+            assert r.get_json()["id"] == dev_a.id
+        finally:
+            _cleanup(app, [dev_a.id], cust_a.id, uid)
+
+    def test_list_devices_ignores_other_customer_id_param(self, app, client):
+        cust_a = _make_customer(app)
+        cust_b = _make_customer(app)
+        dev_a = _make_device(app, cust_a.id)
+        dev_b = _make_device(app, cust_b.id)
+        uid, email, pw = self._make_client_user(app, cust_a.id)
+        try:
+            tok = login(client, email, pw).get_json()["access_token"]
+            # client tries to request another customer's devices explicitly
+            r = client.get(f"/api/devices/?customer_id={cust_b.id}", headers=auth_headers(tok))
+            assert r.status_code == 200
+            ids = [d["id"] for d in r.get_json()["items"]]
+            assert dev_a.id in ids
+            assert dev_b.id not in ids
+        finally:
+            _cleanup(app, [dev_a.id], cust_a.id, uid)
+            _cleanup(app, [dev_b.id], cust_b.id)
+
+    def test_platform_counts_scoped_for_client(self, app, client):
+        cust_a = _make_customer(app)
+        cust_b = _make_customer(app)
+        dev_a = _make_device(app, cust_a.id)
+        dev_b = _make_device(app, cust_b.id)
+        uid, email, pw = self._make_client_user(app, cust_a.id)
+        try:
+            tok = login(client, email, pw).get_json()["access_token"]
+            r = client.get("/api/devices/platform_counts", headers=auth_headers(tok))
+            assert r.status_code == 200
+            body = r.get_json()
+            assert body["by_platform"].get("windows", 0) == 1  # only cust_a's device
+        finally:
+            _cleanup(app, [dev_a.id], cust_a.id, uid)
+            _cleanup(app, [dev_b.id], cust_b.id)
+
+
 class TestQueueTask:
     def test_queue_task_invalid_type(self, app, client):
         uid, email, pw = create_user(app, role="technician")
