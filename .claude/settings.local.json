@@ -426,7 +426,8 @@
       "PowerShell(Start-Process python -ArgumentList \"start_dashboard.py\" -WorkingDirectory \"C:\\\\Users\\\\rigwe\\\\Desktop\\\\RemoteManagementSystem\" -WindowStyle Hidden; Start-Sleep 7; \\(Invoke-WebRequest -Uri 'http://localhost:8502' -UseBasicParsing\\).StatusCode)",
       "PowerShell(Start-Process powershell -Verb RunAs -ArgumentList \"-Command\", \"taskkill /F /PID 25216; taskkill /F /PID 15172\" -Wait)",
       "PowerShell(npx kill-port 5002; Start-Sleep 1; Start-Process python -ArgumentList \"start_api.py\" -WorkingDirectory \"C:\\\\Users\\\\rigwe\\\\Desktop\\\\RemoteManagementSystem\" -WindowStyle Hidden; Start-Sleep 5; try { Invoke-WebRequest -Uri \"http://localhost:5000/api/health\" -UseBasicParsing } catch { $_.Exception.Response.StatusCode.value__; $_.ErrorDetails.Message })",
-      "PowerShell(Start-Process python -ArgumentList \"start_api.py\" -WorkingDirectory \"C:\\\\Users\\\\rigwe\\\\Desktop\\\\RemoteManagementSystem\" -WindowStyle Hidden; Start-Sleep 6; try { Invoke-WebRequest -Uri \"http://localhost:5000/api/health\" -UseBasicParsing } catch { $_.Exception.Response.StatusCode.value__; $_.ErrorDetails.Message })"
+      "PowerShell(Start-Process python -ArgumentList \"start_api.py\" -WorkingDirectory \"C:\\\\Users\\\\rigwe\\\\Desktop\\\\RemoteManagementSystem\" -WindowStyle Hidden; Start-Sleep 6; try { Invoke-WebRequest -Uri \"http://localhost:5000/api/health\" -UseBasicParsing } catch { $_.Exception.Response.StatusCode.value__; $_.ErrorDetails.Message })",
+      "PowerShell(npx kill-port 8501 2>&1)"
     ]
   }
 }
