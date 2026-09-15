@@ -50,5 +50,5 @@ def generate_report():
 @reports_bp.route("/<report_id>", methods=["GET"])
 @jwt_required()
 def get_report(report_id):
-    report = Report.query.get_or_404(report_id)
+    report = db.get_or_404(Report, report_id)
     return jsonify(report.to_dict()), 200

@@ -263,7 +263,7 @@ def _run_scan(scan_id: str):
     from models.audit import NetworkScan
     from utils.oui import lookup_vendor
 
-    scan = NetworkScan.query.get(scan_id)
+    scan = db.session.get(NetworkScan, scan_id)
     if not scan:
         return
 

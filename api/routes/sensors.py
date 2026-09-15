@@ -45,7 +45,7 @@ def _get_device_by_token(device_id: str):
             return None
     agent_token.last_used_at = now
     db.session.add(agent_token)
-    return Device.query.get(device_id)
+    return db.session.get(Device, device_id)
 
 
 def _require_role(*roles):
@@ -140,7 +140,7 @@ def get_sensor_data(device_id: str):
     # Client role: enforce customer isolation
     claims = get_jwt()
     if claims.get("role") == "client":
-        device = Device.query.get_or_404(device_id)
+        device = db.get_or_404(Device, device_id)
         if device.customer_id != claims.get("customer_id"):
             return jsonify({"error": "Forbidden"}), 403
 

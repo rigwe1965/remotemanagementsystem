@@ -33,8 +33,9 @@ def create_checkout_session(invoice, customer_email: str = None) -> tuple:
     cancel_url  = os.getenv("STRIPE_CANCEL_URL",  f"{dashboard_url}/stripe/cancel?invoice_id={invoice.id}")
 
     try:
+        from extensions import db
         from models.org_settings import OrgSettings
-        org = OrgSettings.query.get(1)
+        org = db.session.get(OrgSettings, 1)
         currency = (org.currency if org and org.currency else "usd").lower()
     except Exception:
         currency = "usd"

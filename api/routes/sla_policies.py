@@ -74,7 +74,7 @@ def update_policy(policy_id):
     err = _require_role("admin")
     if err:
         return err
-    policy = SLAPolicy.query.get_or_404(policy_id)
+    policy = db.get_or_404(SLAPolicy, policy_id)
     data = request.get_json(silent=True) or {}
     if "response_hours" in data:
         h = data["response_hours"]
@@ -96,7 +96,7 @@ def delete_policy(policy_id):
     err = _require_role("admin")
     if err:
         return err
-    policy = SLAPolicy.query.get_or_404(policy_id)
+    policy = db.get_or_404(SLAPolicy, policy_id)
     if policy.customer_id is None:
         return jsonify({"error": "Global default SLA policies cannot be deleted — update them instead"}), 400
     db.session.delete(policy)

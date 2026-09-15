@@ -28,7 +28,7 @@ def enqueue_profile_run(self, profile_id: str):
 
     with _get_app().app_context():
         try:
-            profile = AutomationProfile.query.get(profile_id)
+            profile = db.session.get(AutomationProfile, profile_id)
             if not profile:
                 logger.warning("enqueue_profile_run: profile %s not found", profile_id)
                 return

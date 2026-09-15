@@ -49,7 +49,7 @@ def _get_device_by_token(device_id: str):
             return None, None
     agent_token.last_used_at = now
     db.session.add(agent_token)
-    return Device.query.get(device_id), agent_token
+    return db.session.get(Device, device_id), agent_token
 
 
 def _check_session_owner(session, user_id: str):
@@ -112,7 +112,7 @@ def create_session():
     if not device_id:
         return jsonify({"error": "device_id required"}), 400
 
-    device = Device.query.get(device_id)
+    device = db.session.get(Device, device_id)
     if not device:
         return jsonify({"error": "Device not found"}), 404
     if device.is_agentless:
@@ -156,7 +156,7 @@ def get_session(session_id):
     err = _require_role("admin", "technician")
     if err:
         return err
-    session = TerminalSession.query.get_or_404(session_id)
+    session = db.get_or_404(TerminalSession, session_id)
     err = _check_session_owner(session, get_jwt_identity())
     if err:
         return err
@@ -169,7 +169,7 @@ def close_session(session_id):
     err = _require_role("admin", "technician")
     if err:
         return err
-    session = TerminalSession.query.get_or_404(session_id)
+    session = db.get_or_404(TerminalSession, session_id)
     user_id = get_jwt_identity()
     err = _check_session_owner(session, user_id)
     if err:
@@ -188,7 +188,7 @@ def send_command(session_id):
     if err:
         return err
 
-    session = TerminalSession.query.get_or_404(session_id)
+    session = db.get_or_404(TerminalSession, session_id)
     user_id = get_jwt_identity()
     err = _check_session_owner(session, user_id)
     if err:
@@ -231,7 +231,7 @@ def get_output(session_id):
     if err:
         return err
 
-    session = TerminalSession.query.get_or_404(session_id)
+    session = db.get_or_404(TerminalSession, session_id)
     err = _check_session_owner(session, get_jwt_identity())
     if err:
         return err
@@ -290,7 +290,7 @@ def agent_command_running(device_id, command_id):
     if not device:
         return jsonify({"error": "Unauthorized"}), 401
 
-    cmd = TerminalCommand.query.get_or_404(command_id)
+    cmd = db.get_or_404(TerminalCommand, command_id)
     if cmd.status != "pending":
         return jsonify({"error": "Command not pending"}), 400
 
@@ -307,7 +307,7 @@ def agent_post_output(device_id, command_id):
     if not device:
         return jsonify({"error": "Unauthorized"}), 401
 
-    cmd = TerminalCommand.query.get_or_404(command_id)
+    cmd = db.get_or_404(TerminalCommand, command_id)
     data = request.get_json(silent=True) or {}
     content = data.get("content", "")
     stream = data.get("stream", "stdout")  # stdout | stderr
@@ -328,7 +328,7 @@ def agent_post_output(device_id, command_id):
             db.session.add(out)
 
         # Update session activity
-        sess = TerminalSession.query.get(cmd.session_id)
+        sess = db.session.get(TerminalSession, cmd.session_id)
         if sess:
             sess.last_activity_at = datetime.now(timezone.utc)
 
@@ -344,7 +344,7 @@ def agent_command_done(device_id, command_id):
     if not device:
         return jsonify({"error": "Unauthorized"}), 401
 
-    cmd = TerminalCommand.query.get_or_404(command_id)
+    cmd = db.get_or_404(TerminalCommand, command_id)
     data = request.get_json(silent=True) or {}
     exit_code = data.get("exit_code", 0)
 

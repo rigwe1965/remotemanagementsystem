@@ -51,7 +51,7 @@ def _get_device_by_token(device_id: str):
 
     agent_token.last_used_at = now
     db.session.add(agent_token)
-    return Device.query.get(device_id), agent_token
+    return db.session.get(Device, device_id), agent_token
 
 
 @agents_bp.route("/register", methods=["POST"])
@@ -313,7 +313,7 @@ def task_result(device_id):
 
     if task_type == "run_script":
         from models.script import ScriptRun
-        run = ScriptRun.query.get(task_id)
+        run = db.session.get(ScriptRun, task_id)
         if run and run.device_id == device_id:
             run.exit_code = data.get("exit_code")
             run.stdout = (data.get("stdout") or "")[:65536]  # 64KB cap

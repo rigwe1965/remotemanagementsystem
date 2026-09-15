@@ -37,7 +37,7 @@ def sync_psa_integration(self, psa_integration_id: str):
         from extensions import db
         from models.psa_integration import PsaIntegration
 
-        integration = PsaIntegration.query.get(psa_integration_id)
+        integration = db.session.get(PsaIntegration, psa_integration_id)
         if not integration or not integration.is_active:
             return
 
@@ -162,7 +162,7 @@ def _pull_psa_tickets(app, integration, client):
         tmap = psa_id_to_map.get(pt["psa_ticket_id"])
         if not tmap:
             continue
-        local = Ticket.query.get(tmap.ticket_id)
+        local = db.session.get(Ticket, tmap.ticket_id)
         if not local:
             continue
         changed = False

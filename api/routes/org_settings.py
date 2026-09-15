@@ -20,7 +20,7 @@ def _require_admin():
 @org_settings_bp.route("/org-settings", methods=["GET"])
 @jwt_required()
 def get_org_settings():
-    settings = OrgSettings.query.get(1)
+    settings = db.session.get(OrgSettings, 1)
     if not settings:
         settings = OrgSettings(id=1)
         db.session.add(settings)
@@ -36,7 +36,7 @@ def update_org_settings():
     if err:
         return err
     data = request.get_json(silent=True) or {}
-    settings = OrgSettings.query.get(1)
+    settings = db.session.get(OrgSettings, 1)
     if not settings:
         settings = OrgSettings(id=1)
         db.session.add(settings)
@@ -85,7 +85,7 @@ def upload_org_logo():
     except Exception as e:
         return jsonify({"error": f"Image processing failed: {e}"}), 400
 
-    settings = OrgSettings.query.get(1)
+    settings = db.session.get(OrgSettings, 1)
     if not settings:
         settings = OrgSettings(id=1)
         db.session.add(settings)
@@ -97,7 +97,7 @@ def upload_org_logo():
 @org_settings_bp.route("/public/branding", methods=["GET"])
 def public_branding():
     """Public endpoint — no auth. Returns white-label branding fields only."""
-    settings = OrgSettings.query.get(1)
+    settings = db.session.get(OrgSettings, 1)
     if not settings:
         return jsonify({
             "app_name":      "RMM System",
@@ -119,7 +119,7 @@ def delete_org_logo():
     err = _require_admin()
     if err:
         return err
-    settings = OrgSettings.query.get(1)
+    settings = db.session.get(OrgSettings, 1)
     if settings:
         settings.logo_data = None
         db.session.commit()

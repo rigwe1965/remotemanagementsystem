@@ -35,7 +35,7 @@ def generate_report(self, report_id: str):
 
     with _get_app().app_context():
         try:
-            report = Report.query.get(report_id)
+            report = db.session.get(Report, report_id)
             if not report:
                 logger.warning("generate_report: report %s not found", report_id)
                 return

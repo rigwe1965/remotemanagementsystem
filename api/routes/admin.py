@@ -21,7 +21,7 @@ _VALID_STAFF_ROLES = ("admin", "technician", "viewer", "client")
 
 def _require_admin():
     uid = get_jwt_identity()
-    user = User.query.get(uid)
+    user = db.session.get(User, uid)
     if not user or user.role not in ("admin", "superadmin"):
         return None, jsonify({"error": "Admin access required"}), 403
     return user, None, None
@@ -108,7 +108,7 @@ def update_user(user_id):
     if err:
         return err, code
 
-    user = User.query.get(user_id)
+    user = db.session.get(User, user_id)
     if not user:
         return jsonify({"error": "User not found"}), 404
     if user.role == "superadmin":
@@ -151,7 +151,7 @@ def delete_user(user_id):
     if user_id == admin.id:
         return jsonify({"error": "Cannot delete your own account"}), 400
 
-    user = User.query.get(user_id)
+    user = db.session.get(User, user_id)
     if not user:
         return jsonify({"error": "User not found"}), 404
     if user.role == "superadmin":
@@ -174,7 +174,7 @@ def deactivate_user(user_id):
     if user_id == admin.id:
         return jsonify({"error": "Cannot deactivate your own account"}), 400
 
-    user = User.query.get(user_id)
+    user = db.session.get(User, user_id)
     if not user:
         return jsonify({"error": "User not found"}), 404
     if user.role == "superadmin":
@@ -216,7 +216,7 @@ def unlock_user(user_id):
     if err:
         return err, code
 
-    user = User.query.get(user_id)
+    user = db.session.get(User, user_id)
     if not user:
         return jsonify({"error": "User not found"}), 404
     if user.role == "superadmin":
@@ -275,7 +275,7 @@ def update_department(dept_id):
     if err:
         return err, code
 
-    dept = Department.query.get_or_404(dept_id)
+    dept = db.get_or_404(Department, dept_id)
     data = request.get_json(silent=True) or {}
 
     if "name" in data:
@@ -302,7 +302,7 @@ def delete_department(dept_id):
     if err:
         return err, code
 
-    dept = Department.query.get_or_404(dept_id)
+    dept = db.get_or_404(Department, dept_id)
     if dept.name == "Help Desk":
         return jsonify({"error": "The Help Desk department cannot be deleted"}), 400
 
@@ -321,7 +321,7 @@ def set_department_member(dept_id):
     if err:
         return err, code
 
-    Department.query.get_or_404(dept_id)
+    db.get_or_404(Department, dept_id)
     data = request.get_json(silent=True) or {}
     user_id = data.get("user_id")
     action = data.get("action", "add")
@@ -329,7 +329,7 @@ def set_department_member(dept_id):
     if not user_id:
         return jsonify({"error": "user_id required"}), 400
 
-    user = User.query.get(user_id)
+    user = db.session.get(User, user_id)
     if not user:
         return jsonify({"error": "User not found"}), 404
 
@@ -358,7 +358,7 @@ def gdpr_export_user(user_id):
     if err:
         return err, code
 
-    user = User.query.get(user_id)
+    user = db.session.get(User, user_id)
     if not user:
         return jsonify({"error": "User not found"}), 404
 
@@ -390,7 +390,7 @@ def gdpr_delete_user(user_id):
     if user_id == admin.id:
         return jsonify({"error": "Cannot anonymize your own account"}), 400
 
-    user = User.query.get(user_id)
+    user = db.session.get(User, user_id)
     if not user:
         return jsonify({"error": "User not found"}), 404
     if user.role == "superadmin":

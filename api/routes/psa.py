@@ -79,7 +79,7 @@ def update_integration(integration_id):
     err = _require_role("admin")
     if err:
         return err
-    integration = PsaIntegration.query.get_or_404(integration_id)
+    integration = db.get_or_404(PsaIntegration, integration_id)
     data = request.get_json(silent=True) or {}
 
     for field in ("name", "api_url", "company_id", "client_id", "site_name"):
@@ -101,7 +101,7 @@ def delete_integration(integration_id):
     err = _require_role("admin")
     if err:
         return err
-    integration = PsaIntegration.query.get_or_404(integration_id)
+    integration = db.get_or_404(PsaIntegration, integration_id)
     db.session.delete(integration)
     db.session.commit()
     return jsonify({"message": "Integration deleted"}), 200
@@ -115,7 +115,7 @@ def test_connection(integration_id):
     err = _require_role("admin", "technician")
     if err:
         return err
-    integration = PsaIntegration.query.get_or_404(integration_id)
+    integration = db.get_or_404(PsaIntegration, integration_id)
     try:
         client = integration.get_client()
         success, message = client.test_connection()
@@ -136,7 +136,7 @@ def trigger_sync(integration_id):
     err = _require_role("admin", "technician")
     if err:
         return err
-    integration = PsaIntegration.query.get_or_404(integration_id)
+    integration = db.get_or_404(PsaIntegration, integration_id)
     if not integration.is_active:
         return jsonify({"error": "Integration is disabled"}), 400
     try:
@@ -156,7 +156,7 @@ def integration_status(integration_id):
     err = _require_role("admin", "technician")
     if err:
         return err
-    integration = PsaIntegration.query.get_or_404(integration_id)
+    integration = db.get_or_404(PsaIntegration, integration_id)
     ticket_count = PsaTicketMap.query.filter_by(psa_integration_id=integration_id).count()
     company_count = PsaCompanyMap.query.filter_by(psa_integration_id=integration_id).count()
     return jsonify({
@@ -176,7 +176,7 @@ def list_company_maps(integration_id):
     err = _require_role("admin", "technician")
     if err:
         return err
-    PsaIntegration.query.get_or_404(integration_id)
+    db.get_or_404(PsaIntegration, integration_id)
     maps = PsaCompanyMap.query.filter_by(psa_integration_id=integration_id).all()
     return jsonify([m.to_dict() for m in maps]), 200
 
@@ -187,7 +187,7 @@ def create_company_map(integration_id):
     err = _require_role("admin")
     if err:
         return err
-    PsaIntegration.query.get_or_404(integration_id)
+    db.get_or_404(PsaIntegration, integration_id)
     data = request.get_json(silent=True) or {}
     if not data.get("customer_id") or not data.get("psa_company_id"):
         return jsonify({"error": "customer_id and psa_company_id required"}), 400
@@ -237,7 +237,7 @@ def fetch_psa_companies(integration_id):
     err = _require_role("admin", "technician")
     if err:
         return err
-    integration = PsaIntegration.query.get_or_404(integration_id)
+    integration = db.get_or_404(PsaIntegration, integration_id)
     try:
         client = integration.get_client()
         companies = client.get_companies()

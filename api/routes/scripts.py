@@ -78,7 +78,7 @@ def create_script():
 @scripts_bp.route("/<script_id>", methods=["GET"])
 @jwt_required()
 def get_script(script_id):
-    script = Script.query.get_or_404(script_id)
+    script = db.get_or_404(Script, script_id)
     return jsonify(script.to_dict(include_content=True)), 200
 
 
@@ -89,7 +89,7 @@ def update_script(script_id):
     err = _require_role("admin", "technician")
     if err:
         return err
-    script = Script.query.get_or_404(script_id)
+    script = db.get_or_404(Script, script_id)
     if script.is_builtin:
         return jsonify({"error": "Cannot edit built-in scripts"}), 400
     data = request.get_json(silent=True) or {}
@@ -106,7 +106,7 @@ def delete_script(script_id):
     err = _require_role("admin", "technician")
     if err:
         return err
-    script = Script.query.get_or_404(script_id)
+    script = db.get_or_404(Script, script_id)
     if script.is_builtin:
         return jsonify({"error": "Cannot delete built-in scripts"}), 400
     db.session.delete(script)
@@ -122,7 +122,7 @@ def run_script(script_id):
     err = _require_role("admin", "technician")
     if err:
         return err
-    script = Script.query.get_or_404(script_id)
+    script = db.get_or_404(Script, script_id)
     data = request.get_json(silent=True) or {}
     device_ids = data.get("device_ids", [])
     if not device_ids:
@@ -190,5 +190,5 @@ def list_runs():
 @scripts_bp.route("/runs/<run_id>", methods=["GET"])
 @jwt_required()
 def get_run(run_id):
-    run = ScriptRun.query.get_or_404(run_id)
+    run = db.get_or_404(ScriptRun, run_id)
     return jsonify(run.to_dict()), 200

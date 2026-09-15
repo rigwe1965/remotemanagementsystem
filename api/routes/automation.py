@@ -72,7 +72,7 @@ def create_profile():
 @automation_bp.route("/profiles/<profile_id>", methods=["GET"])
 @jwt_required()
 def get_profile(profile_id):
-    profile = AutomationProfile.query.get_or_404(profile_id)
+    profile = db.get_or_404(AutomationProfile, profile_id)
     return jsonify(profile.to_dict()), 200
 
 
@@ -83,7 +83,7 @@ def update_profile(profile_id):
     err = _require_role("admin", "technician")
     if err:
         return err
-    profile = AutomationProfile.query.get_or_404(profile_id)
+    profile = db.get_or_404(AutomationProfile, profile_id)
     data = request.get_json(silent=True) or {}
     for field in ["name", "is_active", "schedule_type", "schedule_config",
                   "run_on_new_agents", "notification_emails", "os_patch_config",
@@ -101,7 +101,7 @@ def delete_profile(profile_id):
     err = _require_role("admin")
     if err:
         return err
-    profile = AutomationProfile.query.get_or_404(profile_id)
+    profile = db.get_or_404(AutomationProfile, profile_id)
     db.session.delete(profile)
     db.session.commit()
     return jsonify({"message": "Profile deleted"}), 200
@@ -113,7 +113,7 @@ def run_profile_now(profile_id):
     err = _require_role("admin", "technician")
     if err:
         return err
-    profile = AutomationProfile.query.get_or_404(profile_id)
+    profile = db.get_or_404(AutomationProfile, profile_id)
 
     cutoff = datetime.now(timezone.utc) - timedelta(seconds=30)
     recent = ScheduledTaskRun.query.filter(
@@ -161,7 +161,7 @@ def delete_run(run_id):
     err = _require_role("admin", "technician")
     if err:
         return err
-    run = ScheduledTaskRun.query.get_or_404(run_id)
+    run = db.get_or_404(ScheduledTaskRun, run_id)
     db.session.delete(run)
     db.session.commit()
     return jsonify({"message": "Run deleted"}), 200

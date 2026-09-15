@@ -102,9 +102,10 @@ def check_device_limit(customer_id: str) -> tuple:
     Returns (at_limit: bool, limit: int|None, current: int).
     """
     try:
+        from extensions import db
         from models.customer import Customer
         from models.device import Device
-        customer = Customer.query.get(customer_id)
+        customer = db.session.get(Customer, customer_id)
         if not customer:
             return False, None, 0
         tier = customer.tier or "standard"

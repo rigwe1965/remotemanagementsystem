@@ -192,7 +192,7 @@ def login():
 @jwt_required(refresh=True)
 def refresh():
     identity = get_jwt_identity()
-    user = User.query.get(identity)
+    user = db.session.get(User, identity)
     if not user or not user.is_active:
         return jsonify({"error": "User not found"}), 401
 
@@ -227,7 +227,7 @@ def logout():
 @jwt_required()
 def me():
     identity = get_jwt_identity()
-    user = User.query.get(identity)
+    user = db.session.get(User, identity)
     if not user:
         return jsonify({"error": "User not found"}), 404
     return jsonify(user.to_dict()), 200
@@ -238,7 +238,7 @@ def me():
 @validate_body(ChangePasswordSchema)
 def change_password():
     identity = get_jwt_identity()
-    user = User.query.get(identity)
+    user = db.session.get(User, identity)
     data = request.get_json(silent=True) or {}
 
     if not user.check_password(data.get("current_password", "")):
@@ -263,7 +263,7 @@ def change_password():
 def force_change_password():
     """Used on forced first-login password change — no current password required."""
     identity = get_jwt_identity()
-    user = User.query.get(identity)
+    user = db.session.get(User, identity)
     if not user:
         return jsonify({"error": "User not found"}), 404
     if not user.must_change_password:
@@ -291,7 +291,7 @@ def mfa_setup():
     """Generate a new TOTP secret for the current user. Returns QR code URI.
     User must call /mfa/enable with a valid code to activate MFA."""
     identity = get_jwt_identity()
-    user = User.query.get(identity)
+    user = db.session.get(User, identity)
     if not user:
         return jsonify({"error": "User not found"}), 404
 
@@ -316,7 +316,7 @@ def mfa_setup():
 def mfa_enable():
     """Verify TOTP code and activate MFA on the account."""
     identity = get_jwt_identity()
-    user = User.query.get(identity)
+    user = db.session.get(User, identity)
     if not user:
         return jsonify({"error": "User not found"}), 404
 
@@ -359,7 +359,7 @@ def mfa_login():
         return jsonify({"error": "Invalid token type"}), 401
 
     user_id = decoded.get("sub")
-    user = User.query.get(user_id)
+    user = db.session.get(User, user_id)
     if not user or not user.is_active or not user.mfa_secret:
         return jsonify({"error": "User not found or MFA not configured"}), 401
 
@@ -396,7 +396,7 @@ def mfa_login():
 def mfa_disable():
     """Disable MFA. Requires current password for confirmation."""
     identity = get_jwt_identity()
-    user = User.query.get(identity)
+    user = db.session.get(User, identity)
     if not user:
         return jsonify({"error": "User not found"}), 404
 
@@ -418,7 +418,7 @@ def upload_avatar():
     from PIL import Image
 
     identity = get_jwt_identity()
-    user = User.query.get(identity)
+    user = db.session.get(User, identity)
     if not user:
         return jsonify({"error": "User not found"}), 404
 
@@ -456,7 +456,7 @@ def upload_avatar():
 def delete_avatar():
     """Remove the current user's avatar."""
     identity = get_jwt_identity()
-    user = User.query.get(identity)
+    user = db.session.get(User, identity)
     if not user:
         return jsonify({"error": "User not found"}), 404
 
@@ -518,7 +518,7 @@ def password_reset_confirm():
         return jsonify({"error": "Invalid token type"}), 400
 
     user_id = decoded.get("sub")
-    user = User.query.get(user_id)
+    user = db.session.get(User, user_id)
     if not user or not user.is_active:
         return jsonify({"error": "User not found"}), 404
 

@@ -120,7 +120,7 @@ def platform_counts():
 @devices_bp.route("/<device_id>", methods=["GET"])
 @jwt_required()
 def get_device(device_id):
-    device = Device.query.get_or_404(device_id)
+    device = db.get_or_404(Device, device_id)
     return jsonify(device.to_dict(include_latest_metrics=True)), 200
 
 
@@ -131,7 +131,7 @@ def update_device(device_id):
     err = _require_role("admin", "technician")
     if err:
         return err
-    device = Device.query.get_or_404(device_id)
+    device = db.get_or_404(Device, device_id)
     data = request.get_json(silent=True) or {}
     for field in ["display_name", "group_id", "customer_id",
                   "hostname", "platform", "device_type", "vendor"]:
@@ -148,7 +148,7 @@ def delete_device(device_id):
     err = _require_role("admin")
     if err:
         return err
-    device = Device.query.get_or_404(device_id)
+    device = db.get_or_404(Device, device_id)
     db.session.delete(device)
     db.session.commit()
     cache_delete_pattern("rmm:devices:list:*")
@@ -158,7 +158,7 @@ def delete_device(device_id):
 @devices_bp.route("/<device_id>/metrics", methods=["GET"])
 @jwt_required()
 def device_metrics(device_id):
-    Device.query.get_or_404(device_id)
+    db.get_or_404(Device, device_id)
     hours = request.args.get("hours", 24, type=int)
     since = datetime.now(timezone.utc) - timedelta(hours=min(hours, 168))
 
@@ -173,7 +173,7 @@ def device_metrics(device_id):
 @devices_bp.route("/<device_id>/software", methods=["GET"])
 @jwt_required()
 def device_software(device_id):
-    Device.query.get_or_404(device_id)
+    db.get_or_404(Device, device_id)
     from models.device import InstalledSoftware
     q = request.args.get("q", "")
     query = InstalledSoftware.query.filter_by(device_id=device_id)
@@ -190,7 +190,7 @@ def reboot_device(device_id):
     err = _require_role("admin", "technician")
     if err:
         return err
-    device = Device.query.get_or_404(device_id)
+    device = db.get_or_404(Device, device_id)
     if not device.is_online:
         return jsonify({"error": "Device is offline"}), 400
     run_id = _queue_builtin_task(device_id, "reboot")
@@ -204,7 +204,7 @@ def shutdown_device(device_id):
     err = _require_role("admin", "technician")
     if err:
         return err
-    device = Device.query.get_or_404(device_id)
+    device = db.get_or_404(Device, device_id)
     if not device.is_online:
         return jsonify({"error": "Device is offline"}), 400
     run_id = _queue_builtin_task(device_id, "shutdown")
@@ -220,7 +220,7 @@ def queue_device_task(device_id):
     err = _require_role("admin", "technician")
     if err:
         return err
-    Device.query.get_or_404(device_id)
+    db.get_or_404(Device, device_id)
     data = request.get_json(silent=True) or {}
     task_type = (data.get("task_type") or "").strip()
     if not task_type:
@@ -246,7 +246,7 @@ def deploy_patches_route(device_id):
     err = _require_role("admin", "technician")
     if err:
         return err
-    Device.query.get_or_404(device_id)
+    db.get_or_404(Device, device_id)
     data = request.get_json(silent=True) or {}
     patch_ids = data.get("patch_ids", [])
     if not patch_ids:
@@ -260,7 +260,7 @@ def deploy_patches_route(device_id):
 @jwt_required()
 def ping_check(device_id):
     """Immediately ping an agentless device and update its online status."""
-    device = Device.query.get_or_404(device_id)
+    device = db.get_or_404(Device, device_id)
     if not device.is_agentless or not device.ip_address:
         return jsonify({"error": "Only available for agentless devices with an IP"}), 400
     from tasks.network_tasks import _ping_host
@@ -277,7 +277,7 @@ def ping_check(device_id):
 @jwt_required()
 def get_screenshot(device_id):
     """Return latest screenshot for a device as JPEG/PNG, or 404 if none captured yet."""
-    Device.query.get_or_404(device_id)
+    db.get_or_404(Device, device_id)
     from pathlib import Path
     from flask import send_file
     screenshots_dir = Path(__file__).parent.parent / "screenshots"

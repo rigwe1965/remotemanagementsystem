@@ -71,7 +71,7 @@ def _get_client_emails(customer_id: str) -> list:
 
 
 def _customer_name(customer_id: str) -> str:
-    c = Customer.query.get(customer_id)
+    c = db.session.get(Customer, customer_id)
     return c.name if c else "Unknown"
 
 
@@ -107,7 +107,7 @@ def list_tickets():
 
     # Client users see only their own customer's tickets
     if role == "client":
-        user = User.query.get(uid)
+        user = db.session.get(User, uid)
         if not user or not user.customer_id:
             return jsonify({"items": [], "total": 0, "page": page}), 200
         query = query.filter_by(customer_id=user.customer_id)
@@ -148,7 +148,7 @@ def create_ticket():
 
     if role == "client":
         # Auto-populate from client's account; ignore any customer_id in payload
-        user = User.query.get(uid)
+        user = db.session.get(User, uid)
         if not user or not user.customer_id:
             return jsonify({"error": "Client account not linked to a customer"}), 400
         customer_id = user.customer_id
@@ -188,11 +188,11 @@ def create_ticket():
 
     try:
         if source == "client":
-            creator = User.query.get(uid)
+            creator = db.session.get(User, uid)
             if creator and creator.email:
                 send_ticket_created_client(ticket.title, ticket.id, ticket.priority, [creator.email])
         if ticket.assignee_id:
-            assignee = User.query.get(ticket.assignee_id)
+            assignee = db.session.get(User, ticket.assignee_id)
             if assignee and assignee.email:
                 send_ticket_assigned(ticket.title, ticket.id, _customer_name(ticket.customer_id),
                                      ticket.priority, assignee.email)
@@ -221,11 +221,11 @@ def get_ticket(ticket_id):
     role = claims.get("role")
     uid = get_jwt_identity()
 
-    ticket = Ticket.query.get_or_404(ticket_id)
+    ticket = db.get_or_404(Ticket, ticket_id)
 
     # Client can only view their own customer's tickets
     if role == "client":
-        user = User.query.get(uid)
+        user = db.session.get(User, uid)
         if not user or ticket.customer_id != user.customer_id:
             return jsonify({"error": "Not found"}), 404
 
@@ -240,7 +240,7 @@ def update_ticket(ticket_id):
     role = claims.get("role")
     uid = get_jwt_identity()
 
-    ticket = Ticket.query.get_or_404(ticket_id)
+    ticket = db.get_or_404(Ticket, ticket_id)
 
     # Clients cannot update tickets (read + create + comment only)
     if role == "client":
@@ -291,7 +291,7 @@ def update_ticket(ticket_id):
     try:
         new_assignee_id = data.get("assignee_id")
         if new_assignee_id and new_assignee_id != old_assignee_id:
-            assignee = User.query.get(new_assignee_id)
+            assignee = db.session.get(User, new_assignee_id)
             if assignee and assignee.email:
                 send_ticket_assigned(ticket.title, ticket.id, _customer_name(ticket.customer_id),
                                      ticket.priority, assignee.email)
@@ -312,7 +312,7 @@ def delete_ticket(ticket_id):
     if err:
         return err
     uid = get_jwt_identity()
-    ticket = Ticket.query.get_or_404(ticket_id)
+    ticket = db.get_or_404(Ticket, ticket_id)
     _ticket_audit("DELETE", uid, ticket_id, {"title": ticket.title})
     db.session.delete(ticket)
     db.session.commit()
@@ -327,11 +327,11 @@ def add_comment(ticket_id):
     role = claims.get("role")
     uid = get_jwt_identity()
 
-    ticket = Ticket.query.get_or_404(ticket_id)
+    ticket = db.get_or_404(Ticket, ticket_id)
 
     # Client can only comment on their own customer's tickets
     if role == "client":
-        user = User.query.get(uid)
+        user = db.session.get(User, uid)
         if not user or ticket.customer_id != user.customer_id:
             return jsonify({"error": "Not found"}), 404
 
@@ -359,7 +359,7 @@ def add_comment(ticket_id):
         if not is_internal:
             if role == "client":
                 if ticket.assignee_id:
-                    assignee = User.query.get(ticket.assignee_id)
+                    assignee = db.session.get(User, ticket.assignee_id)
                     if assignee and assignee.email:
                         send_ticket_comment_to_assignee(ticket.title, ticket.id, data["body"], assignee.email)
             else:

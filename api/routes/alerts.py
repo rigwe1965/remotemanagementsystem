@@ -73,7 +73,7 @@ def create_rule():
 @alerts_bp.route("/alert_rules/<rule_id>", methods=["GET"])
 @jwt_required()
 def get_rule(rule_id):
-    rule = AlertRule.query.get_or_404(rule_id)
+    rule = db.get_or_404(AlertRule, rule_id)
     return jsonify(rule.to_dict()), 200
 
 
@@ -84,7 +84,7 @@ def update_rule(rule_id):
     err = _require_role("admin", "technician")
     if err:
         return err
-    rule = AlertRule.query.get_or_404(rule_id)
+    rule = db.get_or_404(AlertRule, rule_id)
     data = request.get_json(silent=True) or {}
     for field in ["name", "metric", "operator", "threshold", "severity",
                   "cooldown_minutes", "notification_channels", "auto_create_ticket", "is_active"]:
@@ -100,7 +100,7 @@ def delete_rule(rule_id):
     err = _require_role("admin")
     if err:
         return err
-    rule = AlertRule.query.get_or_404(rule_id)
+    rule = db.get_or_404(AlertRule, rule_id)
     db.session.delete(rule)
     db.session.commit()
     return jsonify({"message": "Rule deleted"}), 200
@@ -144,7 +144,7 @@ def list_alerts():
 @alerts_bp.route("/alerts/<alert_id>/acknowledge", methods=["POST"])
 @jwt_required()
 def acknowledge_alert(alert_id):
-    alert = Alert.query.get_or_404(alert_id)
+    alert = db.get_or_404(Alert, alert_id)
     alert.status = "acknowledged"
     alert.acknowledged_by = get_jwt_identity()
     alert.acknowledged_at = datetime.now(timezone.utc)
@@ -156,7 +156,7 @@ def acknowledge_alert(alert_id):
 @alerts_bp.route("/alerts/<alert_id>/resolve", methods=["POST"])
 @jwt_required()
 def resolve_alert(alert_id):
-    alert = Alert.query.get_or_404(alert_id)
+    alert = db.get_or_404(Alert, alert_id)
     alert.status = "resolved"
     alert.resolved_at = datetime.now(timezone.utc)
     db.session.commit()

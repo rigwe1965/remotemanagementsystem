@@ -106,7 +106,7 @@ def get_scan(scan_id):
     err = _require_role("admin", "technician", "viewer")
     if err:
         return err
-    scan = NetworkScan.query.get_or_404(scan_id)
+    scan = db.get_or_404(NetworkScan, scan_id)
     return jsonify({
         **scan.to_dict(),
         "discovered_hosts": scan.discovered_hosts,

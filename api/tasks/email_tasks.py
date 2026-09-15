@@ -79,6 +79,7 @@ def _extract_body(msg) -> str:
 
 
 def _find_ticket(in_reply_to: str, references: str, subject: str):
+    from extensions import db
     from models.ticket import Ticket
 
     all_refs = []
@@ -94,7 +95,7 @@ def _find_ticket(in_reply_to: str, references: str, subject: str):
         # Our outbound Message-IDs look like ticket-{uuid}@rmm
         if ref.startswith("ticket-"):
             tid = ref.split("@")[0][len("ticket-"):]
-            t = Ticket.query.get(tid)
+            t = db.session.get(Ticket, tid)
             if t:
                 return t
         # Match against stored email_thread_id
@@ -194,7 +195,7 @@ def poll_support_inbox(self):
                         try:
                             if existing.assignee_id:
                                 from models.user import User
-                                assignee = User.query.get(existing.assignee_id)
+                                assignee = db.session.get(User, existing.assignee_id)
                                 if assignee and assignee.email:
                                     send_ticket_comment_to_assignee(
                                         existing.title, existing.id,

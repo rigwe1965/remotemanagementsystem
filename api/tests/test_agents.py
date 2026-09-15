@@ -150,32 +150,36 @@ class TestAgentHeartbeat:
         device_id, token = registered
         _heartbeat(client, device_id, token,
                    metrics={"cpu_pct": 10, "ram_pct": 20, "disk_pct": 30})
+        from extensions import db
         from models.device import Device
-        d = Device.query.get(device_id)
+        d = db.session.get(Device, device_id)
         assert d.status == "healthy"
 
     def test_heartbeat_status_warning(self, app, client, registered):
         device_id, token = registered
         _heartbeat(client, device_id, token,
                    metrics={"cpu_pct": 80, "ram_pct": 20, "disk_pct": 30})
+        from extensions import db
         from models.device import Device
-        d = Device.query.get(device_id)
+        d = db.session.get(Device, device_id)
         assert d.status == "warning"
 
     def test_heartbeat_status_critical(self, app, client, registered):
         device_id, token = registered
         _heartbeat(client, device_id, token,
                    metrics={"cpu_pct": 95, "ram_pct": 20, "disk_pct": 30})
+        from extensions import db
         from models.device import Device
-        d = Device.query.get(device_id)
+        d = db.session.get(Device, device_id)
         assert d.status == "critical"
 
     def test_heartbeat_updates_last_seen(self, app, client, registered):
         device_id, token = registered
         before = datetime.now(timezone.utc)
         _heartbeat(client, device_id, token)
+        from extensions import db
         from models.device import Device
-        d = Device.query.get(device_id)
+        d = db.session.get(Device, device_id)
         last_seen = d.last_seen
         if last_seen.tzinfo is None:
             last_seen = last_seen.replace(tzinfo=timezone.utc)

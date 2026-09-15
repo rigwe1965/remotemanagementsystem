@@ -132,18 +132,18 @@ def generate_invoice():
 @billing_bp.route("/invoices/<invoice_id>", methods=["GET"])
 @jwt_required()
 def get_invoice(invoice_id):
-    invoice = Invoice.query.get_or_404(invoice_id)
+    invoice = db.get_or_404(Invoice, invoice_id)
     return jsonify(invoice.to_dict()), 200
 
 
 @billing_bp.route("/invoices/<invoice_id>/pdf", methods=["GET"])
 @jwt_required()
 def get_invoice_pdf(invoice_id):
-    invoice = Invoice.query.get_or_404(invoice_id)
-    customer = Customer.query.get_or_404(invoice.customer_id)
+    invoice = db.get_or_404(Invoice, invoice_id)
+    customer = db.get_or_404(Customer, invoice.customer_id)
 
     from models.org_settings import OrgSettings
-    org = OrgSettings.query.get(1) or OrgSettings(id=1)
+    org = db.session.get(OrgSettings, 1) or OrgSettings(id=1)
 
     from utils.invoice_pdf import generate_invoice_pdf
     pdf_bytes = generate_invoice_pdf(invoice, customer, org)
@@ -166,8 +166,8 @@ def send_invoice_email(invoice_id):
     if err:
         return err
 
-    invoice = Invoice.query.get_or_404(invoice_id)
-    customer = Customer.query.get_or_404(invoice.customer_id)
+    invoice = db.get_or_404(Invoice, invoice_id)
+    customer = db.get_or_404(Customer, invoice.customer_id)
 
     if not customer.email:
         return jsonify({"error": "Customer has no email address on file"}), 400
@@ -177,7 +177,7 @@ def send_invoice_email(invoice_id):
         return jsonify({"error": "SMTP not configured — set SMTP_HOST in .env to enable email delivery"}), 503
 
     from models.org_settings import OrgSettings
-    org = OrgSettings.query.get(1) or OrgSettings(id=1)
+    org = db.session.get(OrgSettings, 1) or OrgSettings(id=1)
 
     from utils.invoice_pdf import generate_invoice_pdf
     pdf_bytes = generate_invoice_pdf(invoice, customer, org)
@@ -238,7 +238,7 @@ def send_invoice(invoice_id):
     err = _require_role("admin")
     if err:
         return err
-    invoice = Invoice.query.get_or_404(invoice_id)
+    invoice = db.get_or_404(Invoice, invoice_id)
     invoice.status = "sent"
     invoice.sent_at = datetime.now(timezone.utc)
     db.session.commit()
@@ -253,7 +253,7 @@ def update_invoice_status(invoice_id):
     err = _require_role("admin")
     if err:
         return err
-    invoice = Invoice.query.get_or_404(invoice_id)
+    invoice = db.get_or_404(Invoice, invoice_id)
     data = request.get_json(silent=True) or {}
     new_status = data.get("status", "").lower()
     allowed = {"draft", "sent", "paid", "overdue"}
@@ -274,7 +274,7 @@ def delete_invoice(invoice_id):
     err = _require_role("admin")
     if err:
         return err
-    invoice = Invoice.query.get_or_404(invoice_id)
+    invoice = db.get_or_404(Invoice, invoice_id)
     db.session.delete(invoice)
     db.session.commit()
     return jsonify({"message": "Invoice deleted"}), 200
@@ -292,11 +292,11 @@ def get_payment_link(invoice_id):
     if not stripe_configured():
         return jsonify({"error": "Stripe not configured — add STRIPE_SECRET_KEY to .env"}), 503
 
-    invoice = Invoice.query.get_or_404(invoice_id)
+    invoice = db.get_or_404(Invoice, invoice_id)
     if invoice.status == "paid":
         return jsonify({"error": "Invoice already paid"}), 400
 
-    customer = Customer.query.get(invoice.customer_id)
+    customer = db.session.get(Customer, invoice.customer_id)
     customer_email = customer.email if customer else None
 
     url, err_msg = create_checkout_session(invoice, customer_email)
@@ -330,7 +330,7 @@ def stripe_webhook():
         session    = event["data"]["object"]
         invoice_id = (session.get("metadata") or {}).get("invoice_id")
         if invoice_id:
-            invoice = Invoice.query.get(invoice_id)
+            invoice = db.session.get(Invoice, invoice_id)
             if invoice and invoice.status != "paid":
                 invoice.status                   = "paid"
                 invoice.paid_at                  = datetime.now(timezone.utc)

@@ -76,7 +76,7 @@ class TestLogin:
         uid, email, pw = create_user(app)
         try:
             # Simulate a lockout that already expired 1 second ago
-            u = User.query.get(uid)
+            u = db.session.get(User, uid)
             u.is_locked = True
             u.failed_login_attempts = 3
             u.locked_until = datetime.now(timezone.utc) - timedelta(seconds=1)
@@ -96,7 +96,7 @@ class TestLogin:
         try:
             login(client, email, "BadPass@99!")  # 1 failure
             login(client, email, pw)             # success — should reset counter
-            u = User.query.get(uid)
+            u = db.session.get(User, uid)
             assert u.failed_login_attempts == 0
             assert not u.is_locked
         finally:
@@ -302,7 +302,7 @@ class TestPasswordChange:
         uid, email, pw = create_user(app)
         # Endpoint requires must_change_password=True
         with app.app_context():
-            u = User.query.get(uid)
+            u = db.session.get(User, uid)
             u.must_change_password = True
             db.session.commit()
         try:
@@ -322,7 +322,7 @@ class TestPasswordChange:
         from models.user import User
         uid, email, pw = create_user(app)
         with app.app_context():
-            u = User.query.get(uid)
+            u = db.session.get(User, uid)
             u.must_change_password = True
             db.session.commit()
         try:

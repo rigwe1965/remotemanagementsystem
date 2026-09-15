@@ -120,7 +120,7 @@ def subscribe_mqtt_sensors(self):
             if item["sensor_type"] not in SENSOR_TYPES:
                 logger.debug("MQTT: unknown sensor_type '%s' — skipped", item["sensor_type"])
                 continue
-            device = Device.query.get(item["device_id"])
+            device = db.session.get(Device, item["device_id"])
             if not device:
                 logger.debug("MQTT: device_id '%s' not found — skipped", item["device_id"])
                 continue

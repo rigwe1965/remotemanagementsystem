@@ -135,7 +135,7 @@ def update_policy(policy_id):
     err = _require_role("admin", "technician")
     if err:
         return err
-    policy = PatchPolicy.query.get_or_404(policy_id)
+    policy = db.get_or_404(PatchPolicy, policy_id)
     data = request.get_json(silent=True) or {}
     for field in ["name", "auto_approve_critical", "auto_approve_security",
                   "auto_approve_service_packs", "auto_approve_drivers",
@@ -153,7 +153,7 @@ def delete_policy(policy_id):
     err = _require_role("admin")
     if err:
         return err
-    policy = PatchPolicy.query.get_or_404(policy_id)
+    policy = db.get_or_404(PatchPolicy, policy_id)
     db.session.delete(policy)
     db.session.commit()
     return jsonify({"message": "Policy deleted"}), 200

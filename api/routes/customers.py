@@ -83,7 +83,7 @@ def create_customer():
 @customers_bp.route("/<customer_id>", methods=["GET"])
 @jwt_required()
 def get_customer(customer_id):
-    customer = Customer.query.get_or_404(customer_id)
+    customer = db.get_or_404(Customer, customer_id)
     return jsonify(customer.to_dict(include_counts=True)), 200
 
 
@@ -94,7 +94,7 @@ def update_customer(customer_id):
     err = _require_role("admin", "technician")
     if err:
         return err
-    customer = Customer.query.get_or_404(customer_id)
+    customer = db.get_or_404(Customer, customer_id)
     data = request.get_json(silent=True) or {}
     for field in ["name", "email", "phone", "address", "tier", "notes", "billing_day", "per_device_rate", "tax_rate"]:
         if field in data:
@@ -109,7 +109,7 @@ def delete_customer(customer_id):
     err = _require_role("admin")
     if err:
         return err
-    customer = Customer.query.get_or_404(customer_id)
+    customer = db.get_or_404(Customer, customer_id)
     customer.is_active = False
     db.session.commit()
     return jsonify({"message": "Customer deactivated"}), 200
@@ -118,7 +118,7 @@ def delete_customer(customer_id):
 @customers_bp.route("/<customer_id>/devices", methods=["GET"])
 @jwt_required()
 def customer_devices(customer_id):
-    Customer.query.get_or_404(customer_id)
+    db.get_or_404(Customer, customer_id)
     from models.device import Device, DeviceMetrics
     from sqlalchemy import func
     devices = Device.query.filter_by(customer_id=customer_id).all()

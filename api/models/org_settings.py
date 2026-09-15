@@ -55,7 +55,7 @@ class OrgSettings(db.Model):
 def ensure_org_settings():
     """Create the singleton org settings row if it doesn't exist."""
     from extensions import db
-    if not OrgSettings.query.get(1):
+    if not db.session.get(OrgSettings, 1):
         settings = OrgSettings(id=1)
         db.session.add(settings)
         db.session.commit()
