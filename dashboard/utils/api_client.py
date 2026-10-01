@@ -339,6 +339,21 @@ class RMMClient:
         return self._post(f"/api/tickets/{ticket_id}/comments",
                           {"body": body, "is_internal": is_internal})
 
+    # --- AI Ticket Triage ---
+    def approve_triage(self, ticket_id: str, reply_override: str = None):
+        data = {"reply_override": reply_override} if reply_override else {}
+        return self._post(f"/api/tickets/{ticket_id}/triage/approve", data)
+
+    def reject_triage(self, ticket_id: str, assignee_id: str = None):
+        data = {"assignee_id": assignee_id} if assignee_id else {}
+        return self._post(f"/api/tickets/{ticket_id}/triage/reject", data)
+
+    def list_triage_categories(self):
+        return self._get("/api/triage/categories/")
+
+    def update_triage_category(self, category_id: str, data: dict):
+        return self._put(f"/api/triage/categories/{category_id}", data)
+
     # --- Scripts ---
     def list_scripts(self, **filters):
         return self._get("/api/scripts/", params=filters)

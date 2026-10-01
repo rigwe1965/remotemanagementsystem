@@ -163,6 +163,123 @@ class TestPollSupportInbox:
                 Customer.query.filter_by(id=cust_id).delete()
                 db.session.commit()
 
+    def test_unknown_sender_falls_back_to_unassigned_inbound_customer(self, app, monkeypatch):
+        """DEFAULT_INBOUND_CUSTOMER_ID unset + UNASSIGNED_INBOUND_CUSTOMER_ID set
+        -> a ticket is still created (never silently dropped) against the catch-all
+        customer, which a human can reassign afterward."""
+        monkeypatch.setenv("SUPPORT_IMAP_HOST", "imap.example.com")
+        monkeypatch.setenv("SUPPORT_IMAP_USER", "support@example.com")
+        monkeypatch.setenv("SUPPORT_IMAP_PASSWORD", "secret")
+        app_singleton._app = app
+
+        with app.app_context():
+            from extensions import db
+            from models.customer import Customer
+            cust = Customer(name=f"UnassignedCo-{uuid.uuid4().hex[:6]}", slug=f"ua-{uuid.uuid4().hex[:6]}",
+                            is_active=True)
+            db.session.add(cust)
+            db.session.commit()
+            cust_id = cust.id
+
+        raw = _fake_email_bytes(
+            from_addr="unknown@external.example", subject="Need help",
+            body="Something is broken.",
+        )
+        mock_mail = MagicMock()
+        mock_mail.search.return_value = ("OK", [b"1"])
+        mock_mail.fetch.return_value = ("OK", [(b"1 (RFC822 {n}", raw)])
+
+        ticket_id = None
+        try:
+            with patch("tasks.email_tasks.imaplib.IMAP4_SSL", return_value=mock_mail), \
+                 patch("tasks.email_tasks.os.getenv", side_effect=lambda k, d="": {
+                     "SUPPORT_IMAP_HOST": "imap.example.com",
+                     "SUPPORT_IMAP_PORT": "993",
+                     "SUPPORT_IMAP_USER": "support@example.com",
+                     "SUPPORT_IMAP_PASSWORD": "secret",
+                     "DEFAULT_INBOUND_CUSTOMER_ID": "",
+                     "UNASSIGNED_INBOUND_CUSTOMER_ID": cust_id,
+                     "AI_TRIAGE_ENABLED": "false",
+                 }.get(k, d)), \
+                 patch("utils.notifications.send_email_ticket_confirmation"):
+                email_tasks.poll_support_inbox()
+
+            with app.app_context():
+                from models.ticket import Ticket
+                ticket = Ticket.query.filter_by(customer_id=cust_id).first()
+                assert ticket is not None
+                assert ticket.requester_email == "unknown@external.example"
+                ticket_id = ticket.id
+        finally:
+            with app.app_context():
+                from extensions import db
+                from models.ticket import Ticket
+                from models.customer import Customer
+                if ticket_id:
+                    Ticket.query.filter_by(id=ticket_id).delete()
+                Customer.query.filter_by(id=cust_id).delete()
+                db.session.commit()
+
+    def test_reply_to_auto_resolved_ticket_reopens_and_notifies(self, app, monkeypatch):
+        """A customer reply to an AI-auto-resolved ticket must reopen it and route
+        to a human — it must NOT re-trigger triage."""
+        monkeypatch.setenv("SUPPORT_IMAP_HOST", "imap.example.com")
+        monkeypatch.setenv("SUPPORT_IMAP_USER", "support@example.com")
+        monkeypatch.setenv("SUPPORT_IMAP_PASSWORD", "secret")
+        app_singleton._app = app
+
+        with app.app_context():
+            from extensions import db
+            from models.customer import Customer
+            from models.ticket import Ticket
+            cust = Customer(name=f"ReopenCo-{uuid.uuid4().hex[:6]}", slug=f"ro-{uuid.uuid4().hex[:6]}",
+                            is_active=True)
+            db.session.add(cust)
+            db.session.commit()
+            ticket = Ticket(
+                title="Already resolved by AI", customer_id=cust.id, status="resolved",
+                auto_resolved=True, triage_status="auto_resolved",
+                requester_email="customer@external.example",
+                email_thread_id="<original-msg@sender.example>",
+            )
+            db.session.add(ticket)
+            db.session.commit()
+            cust_id, ticket_id = cust.id, ticket.id
+
+        raw = _fake_email_bytes(
+            from_addr="customer@external.example", subject="Re: Already resolved by AI",
+            body="This did not fix it.", in_reply_to="<original-msg@sender.example>",
+        )
+        mock_mail = MagicMock()
+        mock_mail.search.return_value = ("OK", [b"1"])
+        mock_mail.fetch.return_value = ("OK", [(b"1 (RFC822 {n}", raw)])
+
+        try:
+            with patch("tasks.email_tasks.imaplib.IMAP4_SSL", return_value=mock_mail), \
+                 patch("tasks.triage_tasks.triage_ticket.delay") as mock_triage_delay:
+                email_tasks.poll_support_inbox()
+
+            mock_triage_delay.assert_not_called()
+
+            with app.app_context():
+                from models.ticket import Ticket
+                from models.ticket import TicketComment
+                refreshed = Ticket.query.filter_by(id=ticket_id).first()
+                assert refreshed.status == "in_progress"
+                assert refreshed.auto_resolved is False
+                assert refreshed.triage_status == "reopened"
+                comments = TicketComment.query.filter_by(ticket_id=ticket_id).all()
+                assert any("did not fix it" in (c.body or "") for c in comments)
+        finally:
+            with app.app_context():
+                from extensions import db
+                from models.ticket import Ticket, TicketComment
+                from models.customer import Customer
+                TicketComment.query.filter_by(ticket_id=ticket_id).delete()
+                Ticket.query.filter_by(id=ticket_id).delete()
+                Customer.query.filter_by(id=cust_id).delete()
+                db.session.commit()
+
     def test_no_unseen_messages_is_a_clean_noop(self, app, monkeypatch):
         monkeypatch.setenv("SUPPORT_IMAP_HOST", "imap.example.com")
         monkeypatch.setenv("SUPPORT_IMAP_USER", "support@example.com")

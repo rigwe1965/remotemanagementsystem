@@ -50,6 +50,7 @@ def make_celery(app=None):
             "tasks.psa_tasks",
             "tasks.mdm_tasks",
             "tasks.usage_tasks",
+            "tasks.triage_tasks",
         ],
     )
 
@@ -140,6 +141,10 @@ def make_celery(app=None):
             },
             "detect-usage-anomaly-hourly": {
                 "task": "tasks.usage_tasks.detect_usage_anomaly",
+                "schedule": 3600.0,
+            },
+            "auto-close-ai-resolved-tickets-hourly": {
+                "task": "tasks.triage_tasks.auto_close_resolved_tickets",
                 "schedule": 3600.0,
             },
         },

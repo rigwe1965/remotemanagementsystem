@@ -42,7 +42,9 @@ API_URL = os.getenv("API_BASE_URL", "http://localhost:5000")
 DASH_URL = "http://localhost:8501"
 
 # ── Tabs ───────────────────────────────────────────────────────────────────────
-tab_sysinfo, tab_audit, tab_users, tab_depts, tab_org = st.tabs(["System Info", "Audit Log", "Users", "Departments", "Org Settings"])
+tab_sysinfo, tab_audit, tab_users, tab_depts, tab_org, tab_triage = st.tabs(
+    ["System Info", "Audit Log", "Users", "Departments", "Org Settings", "AI Triage"]
+)
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # TAB 1 — System Info
@@ -952,5 +954,58 @@ with tab_org:
         else:
             st.session_state.pop("_org_settings", None)
             st.success(f"Saved — currency: {sel_currency}, timezone: {sel_timezone}. Reload pages to apply.")
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# TAB 6 — AI Triage
+# ═══════════════════════════════════════════════════════════════════════════════
+with tab_triage:
+    st.markdown("<div style='height:0.25rem'></div>", unsafe_allow_html=True)
+    st.markdown(
+        '<div style="font-size:0.82rem;color:#6B7B6B;margin-bottom:1rem">'
+        'Every new ticket is automatically categorized by AI. A category only auto-resolves '
+        'tickets (replies to the customer and closes the ticket) when <b>Auto-resolve</b> is on '
+        'below. While <b>Shadow mode</b> is also on, the AI drafts a reply but a technician must '
+        'approve it on the ticket before anything is sent — flip Shadow mode off only once you '
+        'trust that category\'s accuracy on real tickets.</div>',
+        unsafe_allow_html=True,
+    )
+
+    with st.spinner("Loading categories…"):
+        cats_data, cats_err = client.list_triage_categories()
+    if cats_err:
+        st.warning(f"Could not load triage categories — {cats_err}")
+        cats_data = []
+
+    for cat in (cats_data or []):
+        cid = cat["id"]
+        st.markdown(
+            f'<div style="{CARD}">'
+            f'<div style="font-weight:700;color:#1A1A1A;font-size:0.92rem">{esc(cat["label"])}</div>'
+            f'<div style="font-size:0.8rem;color:#6B7B6B;margin-bottom:0.5rem">{esc(cat.get("description") or "")}</div>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+        c1, c2, c3, c4, c5 = st.columns([1.1, 1.1, 1.3, 1.1, 0.9])
+        with c1:
+            new_active = st.checkbox("Active", value=cat.get("is_active", True), key=f"triage_active_{cid}")
+        with c2:
+            new_auto = st.checkbox("Auto-resolve", value=cat.get("auto_resolve_enabled", False), key=f"triage_auto_{cid}")
+        with c3:
+            new_shadow = st.checkbox("Shadow mode (requires approval)", value=cat.get("shadow_mode", True), key=f"triage_shadow_{cid}")
+        with c4:
+            new_threshold = st.slider("Min confidence", 0.0, 1.0, float(cat.get("confidence_threshold", 0.85)),
+                                      step=0.05, key=f"triage_thresh_{cid}")
+        with c5:
+            if st.button("Save", key=f"triage_save_{cid}", width='stretch'):
+                _, serr = client.update_triage_category(cid, {
+                    "is_active": new_active, "auto_resolve_enabled": new_auto,
+                    "shadow_mode": new_shadow, "confidence_threshold": new_threshold,
+                })
+                if serr:
+                    st.error(f"Save failed: {serr}")
+                else:
+                    st.success(f"Saved {cat['label']}.")
+                    st.rerun()
+        st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
 
 render_ai_assistant("Admin Panel", {"context": "navigation_only"})

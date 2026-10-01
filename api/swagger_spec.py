@@ -542,6 +542,82 @@ OPENAPI_SPEC = {
             }
         },
 
+        # ── AI Triage ─────────────────────────────────────────────────────────
+        "/api/tickets/{ticket_id}/triage/approve": {
+            "post": {
+                "tags": ["AI Triage"],
+                "summary": "Approve a staged (shadow-mode) AI-drafted reply",
+                "description": "Admin/technician only. Sends the AI's draft (or reply_override, "
+                               "re-scanned for danger patterns) to the customer and resolves the ticket.",
+                "parameters": [{"name": "ticket_id", "in": "path", "required": True, "schema": {"type": "string"}}],
+                "requestBody": {
+                    "required": False,
+                    "content": {"application/json": {"schema": {
+                        "type": "object",
+                        "properties": {"reply_override": {"type": "string"}},
+                    }}},
+                },
+                "responses": {
+                    "200": {"description": "Approved — resolved and reply sent"},
+                    "400": {"description": "No reply text, or it was flagged by the safety scan"},
+                    "409": {"description": "Ticket is not currently staged for approval"},
+                },
+            }
+        },
+        "/api/tickets/{ticket_id}/triage/reject": {
+            "post": {
+                "tags": ["AI Triage"],
+                "summary": "Reject a staged AI suggestion and escalate to a human",
+                "description": "Admin/technician only. Leaves ticket status untouched; optionally assigns it.",
+                "parameters": [{"name": "ticket_id", "in": "path", "required": True, "schema": {"type": "string"}}],
+                "requestBody": {
+                    "required": False,
+                    "content": {"application/json": {"schema": {
+                        "type": "object",
+                        "properties": {"assignee_id": {"type": "string"}},
+                    }}},
+                },
+                "responses": {
+                    "200": {"description": "Rejected — escalated to human review"},
+                    "409": {"description": "Ticket is not currently staged for approval"},
+                },
+            }
+        },
+        "/api/triage/categories/": {
+            "get": {
+                "tags": ["AI Triage"],
+                "summary": "List triage categories",
+                "description": "The curated whitelist of categories AI triage can classify tickets into, "
+                               "each with its own auto_resolve_enabled/shadow_mode/confidence_threshold gate.",
+                "responses": {"200": {"description": "Array of category objects"}},
+            }
+        },
+        "/api/triage/categories/{category_id}": {
+            "put": {
+                "tags": ["AI Triage"],
+                "summary": "Update a triage category's gate settings",
+                "description": "Admin only.",
+                "parameters": [{"name": "category_id", "in": "path", "required": True, "schema": {"type": "string"}}],
+                "requestBody": {
+                    "required": True,
+                    "content": {"application/json": {"schema": {
+                        "type": "object",
+                        "properties": {
+                            "is_active": {"type": "boolean"},
+                            "auto_resolve_enabled": {"type": "boolean"},
+                            "shadow_mode": {"type": "boolean"},
+                            "confidence_threshold": {"type": "number", "minimum": 0, "maximum": 1},
+                            "auto_close_days": {"type": "integer", "minimum": 1, "nullable": True},
+                        },
+                    }}},
+                },
+                "responses": {
+                    "200": {"description": "Updated"},
+                    "400": {"description": "Invalid field value"},
+                },
+            }
+        },
+
         # ── Scripts ───────────────────────────────────────────────────────────
         "/api/scripts/": {
             "get": {
@@ -949,6 +1025,7 @@ OPENAPI_SPEC = {
         {"name": "Customers", "description": "Customer accounts and device groups"},
         {"name": "Alerts", "description": "Alert rules and triggered alert management"},
         {"name": "Tickets", "description": "Helpdesk ticket tracking"},
+        {"name": "AI Triage", "description": "AI ticket categorization, auto-resolve approval, and the category whitelist"},
         {"name": "Scripts", "description": "Script library and remote execution"},
         {"name": "Patches", "description": "Patch inventory and approval"},
         {"name": "Automation", "description": "Scheduled automation profiles"},
