@@ -14,7 +14,7 @@ def _auth_token(app, client, role):
     return uid, token
 
 
-# ── RBAC — strictly superadmin, no admin bypass ────────────────────────────────
+# ── RBAC — admin and superadmin only ────────────────────────────────────────────
 
 class TestUsageRBAC:
     _GET_ROUTES = [
@@ -25,12 +25,12 @@ class TestUsageRBAC:
         "/api/admin/usage/alert-config",
     ]
 
-    def test_admin_gets_403_on_every_route(self, app, client):
+    def test_admin_gets_200_on_every_route(self, app, client):
         uid, token = _auth_token(app, client, "admin")
         try:
             for path in self._GET_ROUTES:
                 resp = client.get(path, headers=auth_headers(token))
-                assert resp.status_code == 403, f"GET {path} should be 403 for admin"
+                assert resp.status_code == 200, f"GET {path} should be 200 for admin: {resp.get_json()}"
         finally:
             delete_user(app, uid)
 
@@ -51,12 +51,12 @@ class TestUsageRBAC:
         finally:
             delete_user(app, uid)
 
-    def test_admin_cannot_update_alert_config(self, app, client):
+    def test_admin_can_update_alert_config(self, app, client):
         uid, token = _auth_token(app, client, "admin")
         try:
             resp = client.put("/api/admin/usage/alert-config", json={"is_enabled": True},
                                headers=auth_headers(token))
-            assert resp.status_code == 403
+            assert resp.status_code == 200
         finally:
             delete_user(app, uid)
 
