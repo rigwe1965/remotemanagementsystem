@@ -22,12 +22,12 @@ export default function UsageMonitoringPage() {
   const queryClient = useQueryClient();
   const [range, setRange] = useState('7d');
 
-  if (user?.role !== 'superadmin') {
+  if (user?.role !== 'superadmin' && user?.role !== 'admin') {
     return (
       <div className="p-10 text-center">
         <ShieldAlert size={40} className="mx-auto mb-3 text-red-300" />
-        <p className="text-gray-700 font-semibold">Super Administrator access required</p>
-        <p className="text-sm text-gray-400">This page is restricted to the superadmin account.</p>
+        <p className="text-gray-700 font-semibold">Administrator access required</p>
+        <p className="text-sm text-gray-400">This page is restricted to admin and superadmin accounts.</p>
       </div>
     );
   }
