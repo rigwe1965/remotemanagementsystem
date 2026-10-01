@@ -29,7 +29,7 @@ def _fake_get(path, params=None):
 
 class TestNetworkDiscoveryPage:
     def test_idle_state_no_past_scans(self):
-        at = _authenticated_app_test("pages/07_Network_Discovery.py")
+        at = _authenticated_app_test("../pages/07_Network_Discovery.py")
         with patch("utils.api_client.RMMClient._get", side_effect=_fake_get), \
              patch("utils.cached_calls.cached_list_customers", return_value=({"items": []}, None)), \
              patch("utils.api_client.RMMClient.assistant_get_conversation", return_value=(None, "skip")), \
@@ -41,7 +41,7 @@ class TestNetworkDiscoveryPage:
         assert "No scans yet" in markdown_text
 
     def test_viewer_role_has_no_scan_button(self):
-        at = _authenticated_app_test("pages/07_Network_Discovery.py", role="viewer")
+        at = _authenticated_app_test("../pages/07_Network_Discovery.py", role="viewer")
         with patch("utils.api_client.RMMClient._get", side_effect=_fake_get), \
              patch("utils.cached_calls.cached_list_customers", return_value=({"items": []}, None)), \
              patch("utils.api_client.RMMClient.assistant_get_conversation", return_value=(None, "skip")), \

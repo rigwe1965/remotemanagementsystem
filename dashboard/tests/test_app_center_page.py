@@ -20,7 +20,7 @@ _SOFTWARE = ([{"name": "Google Chrome", "version": "120.0", "publisher": "Google
 
 class TestAppCenterPage:
     def test_renders_software_list_for_selected_device(self):
-        at = _authenticated_app_test("pages/06_App_Center.py")
+        at = _authenticated_app_test("../pages/06_App_Center.py")
         with patch("utils.api_client.RMMClient.list_devices", return_value=_DEVICES), \
              patch("utils.api_client.RMMClient.get_device_software", return_value=_SOFTWARE), \
              patch("utils.api_client.RMMClient.assistant_get_conversation", return_value=(None, "skip")), \
@@ -32,7 +32,7 @@ class TestAppCenterPage:
         assert "Google Chrome" in markdown_text
 
     def test_shows_empty_state_when_no_software_found(self):
-        at = _authenticated_app_test("pages/06_App_Center.py")
+        at = _authenticated_app_test("../pages/06_App_Center.py")
         with patch("utils.api_client.RMMClient.list_devices", return_value=_DEVICES), \
              patch("utils.api_client.RMMClient.get_device_software", return_value=([], None)), \
              patch("utils.api_client.RMMClient.assistant_get_conversation", return_value=(None, "skip")), \
@@ -44,7 +44,7 @@ class TestAppCenterPage:
         assert "No software found" in markdown_text
 
     def test_stops_with_warning_when_device_list_fails(self):
-        at = _authenticated_app_test("pages/06_App_Center.py")
+        at = _authenticated_app_test("../pages/06_App_Center.py")
         with patch("utils.api_client.RMMClient.list_devices", return_value=(None, "Connection refused")), \
              patch("streamlit.page_link"):
             at.run()

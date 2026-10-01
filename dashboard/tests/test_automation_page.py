@@ -15,7 +15,7 @@ def _authenticated_app_test(path: str) -> AppTest:
 
 class TestAutomationPage:
     def test_renders_profile_card(self):
-        at = _authenticated_app_test("pages/11_Automation.py")
+        at = _authenticated_app_test("../pages/11_Automation.py")
         profiles = ({"items": [{"id": "p1", "name": "Nightly Cleanup", "is_active": True,
                                  "schedule_type": "daily", "last_run_at": None}]}, None)
         with patch("utils.api_client.RMMClient.list_profiles", return_value=profiles), \
@@ -28,7 +28,7 @@ class TestAutomationPage:
         assert "Nightly Cleanup" in markdown_text
 
     def test_shows_info_when_no_profiles(self):
-        at = _authenticated_app_test("pages/11_Automation.py")
+        at = _authenticated_app_test("../pages/11_Automation.py")
         with patch("utils.api_client.RMMClient.list_profiles", return_value=({"items": []}, None)), \
              patch("utils.api_client.RMMClient.list_scripts", return_value=([], None)), \
              patch("streamlit.page_link"):
@@ -38,7 +38,7 @@ class TestAutomationPage:
         assert any("No automation profiles" in i.value for i in at.info)
 
     def test_shows_error_on_api_failure(self):
-        at = _authenticated_app_test("pages/11_Automation.py")
+        at = _authenticated_app_test("../pages/11_Automation.py")
         with patch("utils.api_client.RMMClient.list_profiles", return_value=(None, "Connection refused")), \
              patch("utils.api_client.RMMClient.list_scripts", return_value=([], None)), \
              patch("streamlit.page_link"):

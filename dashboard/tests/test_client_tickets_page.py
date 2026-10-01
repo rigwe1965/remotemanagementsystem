@@ -9,7 +9,7 @@ from streamlit.testing.v1 import AppTest
 
 
 def _authenticated_app_test(role: str = "client") -> AppTest:
-    at = AppTest.from_file("pages/21_Client_Tickets.py")
+    at = AppTest.from_file("../pages/21_Client_Tickets.py")
     at.session_state["access_token"] = f"fake-token-{uuid.uuid4().hex[:8]}"
     at.session_state["refresh_token"] = "fake-refresh-token"
     at.session_state["user"] = {"id": "u1", "email": "client@test.local", "role": role,

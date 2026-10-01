@@ -17,7 +17,7 @@ _CUST_RESPONSE = ({"items": [{"id": "c1", "name": "Acme Corp"}], "total": 1}, No
 
 class TestReportsPage:
     def test_renders_report_history(self):
-        at = _authenticated_app_test("pages/08_Reports.py")
+        at = _authenticated_app_test("../pages/08_Reports.py")
         reports = [{"id": "r1", "name": "Q1 Device Health", "template_type": "device_health",
                     "customer_id": "c1", "generated_at": "2026-01-01T00:00:00Z", "file_path": ""}]
         with patch("utils.cached_calls.cached_list_customers", return_value=_CUST_RESPONSE), \
@@ -31,7 +31,7 @@ class TestReportsPage:
         assert "Q1 Device Health" in markdown_text
 
     def test_shows_empty_state_with_no_reports(self):
-        at = _authenticated_app_test("pages/08_Reports.py")
+        at = _authenticated_app_test("../pages/08_Reports.py")
         with patch("utils.cached_calls.cached_list_customers", return_value=_CUST_RESPONSE), \
              patch("utils.api_client.RMMClient.list_reports", return_value=([], None)), \
              patch("utils.api_client.RMMClient.assistant_get_conversation", return_value=(None, "skip")), \
@@ -43,7 +43,7 @@ class TestReportsPage:
         assert "No reports yet" in markdown_text
 
     def test_shows_error_on_history_load_failure(self):
-        at = _authenticated_app_test("pages/08_Reports.py")
+        at = _authenticated_app_test("../pages/08_Reports.py")
         with patch("utils.cached_calls.cached_list_customers", return_value=_CUST_RESPONSE), \
              patch("utils.api_client.RMMClient.list_reports", return_value=(None, "Connection refused")), \
              patch("utils.api_client.RMMClient.assistant_get_conversation", return_value=(None, "skip")), \

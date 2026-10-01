@@ -23,7 +23,7 @@ def _authenticated_app_test(path: str) -> AppTest:
 
 class TestDevicesPage:
     def test_renders_with_no_devices(self):
-        at = _authenticated_app_test("pages/04_Devices.py")
+        at = _authenticated_app_test("../pages/04_Devices.py")
         with patch("utils.api_client.RMMClient.list_devices", return_value=({"items": []}, None)), \
              patch("utils.api_client.RMMClient.get_platform_counts", return_value=({"by_platform": {}, "agentless": 0}, None)), \
              patch("utils.api_client.RMMClient.get_agent_update_info", return_value=({}, None)), \
@@ -36,7 +36,7 @@ class TestDevicesPage:
         assert "Devices" in markdown_text
 
     def test_renders_agent_device_row(self):
-        at = _authenticated_app_test("pages/04_Devices.py")
+        at = _authenticated_app_test("../pages/04_Devices.py")
         device = {
             "id": "d1", "hostname": "DESKTOP-ABC123", "platform": "windows",
             "ip_address": "10.0.0.5", "status": "healthy", "is_online": True,
@@ -61,7 +61,7 @@ class TestDevicesPage:
         XSS via unescaped device.hostname/os_name/os_version/platform rendered
         with unsafe_allow_html=True. A hostname containing an HTML payload
         must render as literal escaped text, never as a live element."""
-        at = _authenticated_app_test("pages/04_Devices.py")
+        at = _authenticated_app_test("../pages/04_Devices.py")
         payload = '<img src=x onerror="alert(1)">'
         device = {
             "id": "d1", "hostname": payload, "platform": "windows",
@@ -86,7 +86,7 @@ class TestDevicesPage:
         assert "&lt;img src=x onerror=" in markdown_text
 
     def test_shows_warning_when_devices_fail_to_load(self):
-        at = _authenticated_app_test("pages/04_Devices.py")
+        at = _authenticated_app_test("../pages/04_Devices.py")
         with patch("utils.api_client.RMMClient.list_devices", return_value=(None, "Connection refused")), \
              patch("utils.api_client.RMMClient.get_platform_counts", return_value=({}, None)), \
              patch("utils.api_client.RMMClient.get_agent_update_info", return_value=({}, None)), \

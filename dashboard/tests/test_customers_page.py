@@ -17,7 +17,7 @@ def _authenticated_app_test(path: str) -> AppTest:
 
 class TestCustomersPage:
     def test_renders_customer_names(self):
-        at = _authenticated_app_test("pages/03_Customers.py")
+        at = _authenticated_app_test("../pages/03_Customers.py")
         fake_response = (
             {"items": [{"id": "c1", "name": "Acme Corp", "email": None, "tier": "standard",
                         "device_count": 3, "online_count": 1, "created_at": "2026-01-01T00:00:00Z"}],
@@ -25,7 +25,7 @@ class TestCustomersPage:
             None,
         )
         # AppTest.from_file() runs pages/03_Customers.py in isolation, but
-        # render_sidebar() (utils/nav.py) calls st.page_link("pages/01_Dashboard.py", ...)
+        # render_sidebar() (utils/nav.py) calls st.page_link("../pages/01_Dashboard.py", ...)
         # for every nav item — Streamlit's page_link() resolves that path against
         # the app's multipage registry, which AppTest never builds when a single
         # page file is the entry point (only populated when Streamlit boots from
@@ -43,7 +43,7 @@ class TestCustomersPage:
         assert "Acme Corp" in expander_labels
 
     def test_shows_error_banner_on_api_failure(self):
-        at = _authenticated_app_test("pages/03_Customers.py")
+        at = _authenticated_app_test("../pages/03_Customers.py")
         with patch("utils.api_client.RMMClient.list_customers", return_value=(None, "Connection refused")), \
              patch("streamlit.page_link"):
             at.run()

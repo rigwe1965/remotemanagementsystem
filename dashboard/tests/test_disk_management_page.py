@@ -15,7 +15,7 @@ def _authenticated_app_test(path: str) -> AppTest:
 
 class TestDiskManagementPage:
     def test_shows_no_devices_registered(self):
-        at = _authenticated_app_test("pages/14_Disk_Management.py")
+        at = _authenticated_app_test("../pages/14_Disk_Management.py")
         with patch("utils.api_client.RMMClient.list_devices", return_value=({"items": []}, None)), \
              patch("streamlit.page_link"):
             at.run()
@@ -25,7 +25,7 @@ class TestDiskManagementPage:
 
     def test_shows_no_disk_metrics_for_device_without_metrics(self):
         device = {"id": "d1", "hostname": "WIN-HOST-1", "latest_metrics": None}
-        at = _authenticated_app_test("pages/14_Disk_Management.py")
+        at = _authenticated_app_test("../pages/14_Disk_Management.py")
         with patch("utils.api_client.RMMClient.list_devices", return_value=({"items": [device]}, None)), \
              patch("streamlit.page_link"):
             at.run()
@@ -38,14 +38,14 @@ class TestDiskManagementPage:
             "id": "d1", "hostname": "WIN-HOST-1",
             "latest_metrics": {"disks": [{"drive": "C:", "used_pct": 45.0, "total_gb": 500, "used_gb": 225}]},
         }
-        at = _authenticated_app_test("pages/14_Disk_Management.py")
+        at = _authenticated_app_test("../pages/14_Disk_Management.py")
         with patch("utils.api_client.RMMClient.list_devices", return_value=({"items": [device]}, None)), \
              patch("streamlit.page_link"):
             at.run()
         assert not at.exception
 
     def test_shows_warning_when_device_list_fails(self):
-        at = _authenticated_app_test("pages/14_Disk_Management.py")
+        at = _authenticated_app_test("../pages/14_Disk_Management.py")
         with patch("utils.api_client.RMMClient.list_devices", return_value=(None, "Connection refused")), \
              patch("streamlit.page_link"):
             at.run()

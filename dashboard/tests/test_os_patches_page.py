@@ -15,7 +15,7 @@ def _authenticated_app_test(path: str) -> AppTest:
 
 class TestOsPatchesPage:
     def test_renders_pending_patch(self):
-        at = _authenticated_app_test("pages/12_OS_Patches.py")
+        at = _authenticated_app_test("../pages/12_OS_Patches.py")
         pending = ([{"id": "p1", "patch_name": "KB123456", "patch_type": "security",
                       "status": "pending", "device_hostname": "HOST-A"}], None)
         with patch("utils.api_client.RMMClient.get_patch_summary", return_value=({}, None)), \
@@ -29,7 +29,7 @@ class TestOsPatchesPage:
         assert "KB123456" in markdown_text
 
     def test_shows_error_when_summary_fails(self):
-        at = _authenticated_app_test("pages/12_OS_Patches.py")
+        at = _authenticated_app_test("../pages/12_OS_Patches.py")
         with patch("utils.api_client.RMMClient.get_patch_summary", return_value=(None, "Connection refused")), \
              patch("utils.api_client.RMMClient.get_pending_patches", return_value=([], None)), \
              patch("utils.api_client.RMMClient.list_patches", return_value=({"items": []}, None)), \
