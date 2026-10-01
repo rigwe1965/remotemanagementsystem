@@ -189,7 +189,6 @@
       "PowerShell(\\(Get-Command streamlit -ErrorAction SilentlyContinue\\).Source ; \\(Get-Command python -ErrorAction SilentlyContinue\\).Source)",
       "PowerShell(Start-Process -FilePath \"python\" -ArgumentList \"-m\", \"streamlit\", \"run\", \"app.py\" -WorkingDirectory \"C:\\\\Users\\\\rigwe\\\\Desktop\\\\RemoteManagementSystem\\\\dashboard\" -WindowStyle Hidden)",
       "PowerShell(git *)",
-      "PowerShell(Start-Process \"https://github.com/Obinwanne1/RemoteManagementSystem\")",
       "PowerShell(Start-Process -FilePath \"python\" -ArgumentList \"-m streamlit run app.py\" -WorkingDirectory \"C:\\\\Users\\\\rigwe\\\\Desktop\\\\RemoteManagementSystem\\\\dashboard\" -WindowStyle Hidden)",
       "Bash(python -m streamlit run app.py)",
       "Bash(pkill -f \"streamlit run app.py\")",
