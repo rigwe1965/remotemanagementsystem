@@ -1,4 +1,4 @@
-"""Usage Monitoring — API & AI token usage, superadmin-only."""
+"""Usage Monitoring — API & AI token usage, admin/superadmin-only."""
 import streamlit as st
 import pandas as pd
 
@@ -17,9 +17,9 @@ client = require_auth()
 render_sidebar()
 user = current_user() or {}
 
-# ── Role guard — strictly superadmin, no admin fallback ─────────────────────────
-if user.get("role") != "superadmin":
-    st.error("Super Administrator access required. This page is restricted to the superadmin account.")
+# ── Role guard — admin and superadmin only ───────────────────────────────────────
+if user.get("role") not in ("admin", "superadmin"):
+    st.error("Administrator access required. This page is restricted to admin and superadmin accounts.")
     if st.button("Sign Out / Switch Account", type="primary"):
         logout()
     st.stop()
@@ -27,7 +27,7 @@ if user.get("role") != "superadmin":
 st.markdown(
     '<h1 style="margin:0">Usage Monitoring</h1>'
     '<p style="color:#6B7B6B;margin:2px 0 1rem;font-size:0.88rem">'
-    'API calls, AI token consumption, and estimated cost — visible only to Super Administrators</p>',
+    'API calls, AI token consumption, and estimated cost — visible only to Administrators</p>',
     unsafe_allow_html=True,
 )
 
