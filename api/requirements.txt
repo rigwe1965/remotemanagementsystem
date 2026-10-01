@@ -24,7 +24,7 @@ anthropic>=0.40.0,<2.0.0
 # upper bound (capped at the next major above what's currently installed and
 # tested), matching the convention paho-mqtt/pysnmp below already use, so a
 # future install can't silently pull in an untested major version.
-cachetools>=5.0.0,<8.0.0
+cachetools>=7.2.0,<8.0.0
 waitress>=3.0.0,<4.0.0
 sentry-sdk[flask]>=2.0.0,<3.0.0
 cryptography>=42.0.0,<51.0.0
