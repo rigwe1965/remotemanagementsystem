@@ -24,7 +24,7 @@ _ENROLLMENTS = ([
 
 class TestMobileEnrollmentPage:
     def test_blocks_viewer_role(self):
-        at = _authenticated_app_test("pages/19_Mobile_Enrollment.py", role="viewer")
+        at = _authenticated_app_test("../pages/19_Mobile_Enrollment.py", role="viewer")
         with patch("streamlit.page_link"):
             at.run()
 
@@ -32,7 +32,7 @@ class TestMobileEnrollmentPage:
         assert any("permission" in e.value for e in at.error)
 
     def test_renders_integration_and_enrollments_for_admin(self):
-        at = _authenticated_app_test("pages/19_Mobile_Enrollment.py", role="admin")
+        at = _authenticated_app_test("../pages/19_Mobile_Enrollment.py", role="admin")
         with patch("utils.api_client.RMMClient.list_mdm_integrations", return_value=_INTEGRATIONS), \
              patch("utils.api_client.RMMClient.list_customers", return_value=_CUSTOMERS), \
              patch("utils.api_client.RMMClient.list_mdm_enrollments", return_value=_ENROLLMENTS), \
@@ -44,7 +44,7 @@ class TestMobileEnrollmentPage:
         assert "Acme Fleet" in expander_labels
 
     def test_shows_info_when_no_integrations(self):
-        at = _authenticated_app_test("pages/19_Mobile_Enrollment.py", role="admin")
+        at = _authenticated_app_test("../pages/19_Mobile_Enrollment.py", role="admin")
         with patch("utils.api_client.RMMClient.list_mdm_integrations", return_value=([], None)), \
              patch("utils.api_client.RMMClient.list_customers", return_value=_CUSTOMERS), \
              patch("utils.api_client.RMMClient.list_mdm_enrollments", return_value=([], None)), \

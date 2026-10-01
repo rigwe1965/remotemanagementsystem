@@ -34,7 +34,7 @@ _SUMMARY = {
 
 class TestDashboardOverviewPage:
     def test_renders_stat_cards_from_summary(self):
-        at = _authenticated_app_test("pages/01_Dashboard.py", "overview-happy")
+        at = _authenticated_app_test("../pages/01_Dashboard.py", "overview-happy")
         with patch("utils.api_client.RMMClient.get_summary", return_value=(_SUMMARY, None)), \
              patch("utils.api_client.RMMClient.get_health_map", return_value=([], None)), \
              patch("utils.api_client.RMMClient.get_recent_alerts", return_value=([], None)), \
@@ -48,7 +48,7 @@ class TestDashboardOverviewPage:
         assert "Dashboard Overview" in markdown_text
 
     def test_shows_warning_banner_when_summary_fails(self):
-        at = _authenticated_app_test("pages/01_Dashboard.py", "overview-error")
+        at = _authenticated_app_test("../pages/01_Dashboard.py", "overview-error")
         with patch("utils.api_client.RMMClient.get_summary", return_value=(None, "Connection refused")), \
              patch("streamlit.page_link"):
             at.run(timeout=15)

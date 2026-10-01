@@ -18,7 +18,7 @@ _ONLINE_DEVICE = {"id": "d1", "hostname": "WIN-HOST-1", "is_online": True, "is_a
 
 class TestSoftwarePatchesPage:
     def test_shows_empty_state_when_no_online_devices(self):
-        at = _authenticated_app_test("pages/13_Software_Patches.py")
+        at = _authenticated_app_test("../pages/13_Software_Patches.py")
         with patch("utils.api_client.RMMClient.list_devices", return_value=({"items": []}, None)), \
              patch("streamlit.page_link"):
             at.run()
@@ -27,7 +27,7 @@ class TestSoftwarePatchesPage:
         assert "No online devices" in markdown_text
 
     def test_renders_with_one_online_device(self):
-        at = _authenticated_app_test("pages/13_Software_Patches.py")
+        at = _authenticated_app_test("../pages/13_Software_Patches.py")
         # st.selectbox auto-selects the first option on a fresh run, so
         # get_device_software() is called eagerly for the default device.
         with patch("utils.api_client.RMMClient.list_devices", return_value=({"items": [_ONLINE_DEVICE]}, None)), \
@@ -37,7 +37,7 @@ class TestSoftwarePatchesPage:
         assert not at.exception
 
     def test_shows_warning_when_device_list_fails(self):
-        at = _authenticated_app_test("pages/13_Software_Patches.py")
+        at = _authenticated_app_test("../pages/13_Software_Patches.py")
         with patch("utils.api_client.RMMClient.list_devices", return_value=(None, "Connection refused")), \
              patch("streamlit.page_link"):
             at.run()

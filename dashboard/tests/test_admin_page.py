@@ -20,7 +20,7 @@ def _authenticated_app_test(path: str) -> AppTest:
 
 class TestAdminPage:
     def test_renders_all_tabs_with_empty_data(self):
-        at = _authenticated_app_test("pages/10_Admin.py")
+        at = _authenticated_app_test("../pages/10_Admin.py")
         with patch("utils.api_client.RMMClient._get", return_value=({"status": "ok"}, None)), \
              patch("utils.api_client.RMMClient.get_org_token", return_value=({"org_token": "tok123"}, None)), \
              patch("utils.api_client.RMMClient.get_server_ips", return_value=({"lan_ips": []}, None)), \
@@ -37,7 +37,7 @@ class TestAdminPage:
     def test_lists_active_user_in_items_key(self):
         """Regression-style check for audits/code_duplication_audit.md Finding N2
         — the admin/users response key is "items", not the old "users"."""
-        at = _authenticated_app_test("pages/10_Admin.py")
+        at = _authenticated_app_test("../pages/10_Admin.py")
         users_resp = ({"items": [{"id": "u2", "email": "tech@test.local", "full_name": "Tech User",
                                    "role": "technician", "is_active": True}], "total": 1, "pages": 1}, None)
         with patch("utils.api_client.RMMClient._get", return_value=({"status": "ok"}, None)), \

@@ -18,7 +18,7 @@ _ORG_RESPONSE = ({"currency": "USD"}, None)
 
 class TestInvoiceDetailPage:
     def test_warns_when_no_invoice_selected(self):
-        at = _authenticated_app_test("pages/10_Invoice_Detail.py")
+        at = _authenticated_app_test("../pages/10_Invoice_Detail.py")
         with patch("streamlit.page_link"):
             at.run()
 
@@ -33,7 +33,7 @@ class TestInvoiceDetailPage:
         # version). So this test verifies the fetch was wired correctly — the
         # right invoice_id was requested — rather than the (untestable) rendered
         # HTML content.
-        at = _authenticated_app_test("pages/10_Invoice_Detail.py")
+        at = _authenticated_app_test("../pages/10_Invoice_Detail.py")
         at.session_state["_view_invoice_id"] = "i1"
         invoice = {
             "id": "i1", "invoice_number": "INV-001", "status": "paid", "total": 100.0,
@@ -52,7 +52,7 @@ class TestInvoiceDetailPage:
         assert not at.error
 
     def test_shows_error_when_invoice_fails_to_load(self):
-        at = _authenticated_app_test("pages/10_Invoice_Detail.py")
+        at = _authenticated_app_test("../pages/10_Invoice_Detail.py")
         at.session_state["_view_invoice_id"] = "i1"
         with patch("utils.api_client.RMMClient.get_invoice", return_value=(None, "Not found")), \
              patch("utils.api_client.RMMClient.get_org_settings", return_value=_ORG_RESPONSE), \

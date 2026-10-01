@@ -23,7 +23,7 @@ _READINGS = ([
 
 class TestIotSensorsPage:
     def test_renders_metric_for_readings(self):
-        at = _authenticated_app_test("pages/18_IoT_Sensors.py")
+        at = _authenticated_app_test("../pages/18_IoT_Sensors.py")
         with patch("utils.api_client.RMMClient.list_devices", return_value=_DEVICES), \
              patch("utils.api_client.RMMClient.list_customers", return_value=_CUSTOMERS), \
              patch("utils.api_client.RMMClient.get_sensor_data", return_value=_READINGS), \
@@ -35,7 +35,7 @@ class TestIotSensorsPage:
         assert "Temperature" in metric_labels
 
     def test_shows_info_when_no_devices(self):
-        at = _authenticated_app_test("pages/18_IoT_Sensors.py")
+        at = _authenticated_app_test("../pages/18_IoT_Sensors.py")
         with patch("utils.api_client.RMMClient.list_devices", return_value=({"items": []}, None)), \
              patch("utils.api_client.RMMClient.list_customers", return_value=_CUSTOMERS), \
              patch("streamlit.page_link"):
@@ -45,7 +45,7 @@ class TestIotSensorsPage:
         assert any("No devices found" in i.value for i in at.info)
 
     def test_shows_info_when_no_readings_in_window(self):
-        at = _authenticated_app_test("pages/18_IoT_Sensors.py")
+        at = _authenticated_app_test("../pages/18_IoT_Sensors.py")
         with patch("utils.api_client.RMMClient.list_devices", return_value=_DEVICES), \
              patch("utils.api_client.RMMClient.list_customers", return_value=_CUSTOMERS), \
              patch("utils.api_client.RMMClient.get_sensor_data", return_value=([], None)), \

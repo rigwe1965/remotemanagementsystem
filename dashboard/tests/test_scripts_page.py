@@ -5,7 +5,7 @@ from streamlit.testing.v1 import AppTest
 
 
 def _authenticated_app_test() -> AppTest:
-    at = AppTest.from_file("pages/16_Scripts.py")
+    at = AppTest.from_file("../pages/16_Scripts.py")
     at.session_state["access_token"] = f"fake-token-{uuid.uuid4().hex[:8]}"
     at.session_state["refresh_token"] = "fake-refresh-token"
     at.session_state["user"] = {"id": "u1", "email": "admin@test.local", "role": "admin", "full_name": "Test Admin"}

@@ -20,7 +20,7 @@ _ALERTS = ({"items": [{"id": "a1", "severity": "critical", "status": "open",
 
 class TestAlertsPage:
     def test_renders_alert_summary_and_expander(self):
-        at = _authenticated_app_test("pages/05_Alerts.py")
+        at = _authenticated_app_test("../pages/05_Alerts.py")
         with patch("utils.cached_calls.cached_list_alerts", return_value=_ALERTS), \
              patch("utils.api_client.RMMClient.list_alert_rules", return_value=([], None)), \
              patch("utils.api_client.RMMClient.assistant_get_conversation", return_value=(None, "skip")), \
@@ -33,7 +33,7 @@ class TestAlertsPage:
         assert "CPU high" in expander_labels
 
     def test_shows_empty_state_when_no_alerts(self):
-        at = _authenticated_app_test("pages/05_Alerts.py")
+        at = _authenticated_app_test("../pages/05_Alerts.py")
         with patch("utils.cached_calls.cached_list_alerts", return_value=({"items": [], "total": 0}, None)), \
              patch("utils.api_client.RMMClient.list_alert_rules", return_value=([], None)), \
              patch("utils.api_client.RMMClient.assistant_get_conversation", return_value=(None, "skip")), \
@@ -45,7 +45,7 @@ class TestAlertsPage:
         assert "No alerts" in markdown_text
 
     def test_shows_warning_when_alerts_fail_to_load(self):
-        at = _authenticated_app_test("pages/05_Alerts.py")
+        at = _authenticated_app_test("../pages/05_Alerts.py")
         with patch("utils.cached_calls.cached_list_alerts", return_value=(None, "Connection refused")), \
              patch("utils.api_client.RMMClient.list_alert_rules", return_value=([], None)), \
              patch("utils.api_client.RMMClient.assistant_get_conversation", return_value=(None, "skip")), \

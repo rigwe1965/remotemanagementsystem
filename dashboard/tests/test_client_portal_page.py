@@ -16,7 +16,7 @@ def _authenticated_app_test(path: str, role: str = "client") -> AppTest:
 
 class TestClientPortalPage:
     def test_redirects_client_role_without_exception(self):
-        at = _authenticated_app_test("pages/20_Client_Portal.py", role="client")
+        at = _authenticated_app_test("../pages/20_Client_Portal.py", role="client")
         # st.switch_page(), like st.page_link(), needs the multipage registry
         # that only exists when Streamlit boots from app.py — AppTest.from_file()
         # on an isolated page can't resolve it, so it's patched to a no-op here
@@ -27,7 +27,7 @@ class TestClientPortalPage:
         assert not at.exception
 
     def test_redirects_staff_role_without_exception(self):
-        at = _authenticated_app_test("pages/20_Client_Portal.py", role="admin")
+        at = _authenticated_app_test("../pages/20_Client_Portal.py", role="admin")
         with patch("streamlit.page_link"), patch("streamlit.switch_page"):
             at.run()
 

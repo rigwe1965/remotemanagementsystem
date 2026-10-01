@@ -21,7 +21,7 @@ _CUSTOMERS = ({"items": [{"id": "c1", "name": "Acme Corp"}]}, None)
 
 class TestTicketsPage:
     def test_renders_ticket_row(self):
-        at = _authenticated_app_test("pages/02_Tickets.py")
+        at = _authenticated_app_test("../pages/02_Tickets.py")
         with patch("utils.api_client.RMMClient.list_tickets", return_value=_TICKETS), \
              patch("utils.api_client.RMMClient.list_customers", return_value=_CUSTOMERS), \
              patch("utils.api_client.RMMClient.assistant_get_conversation", return_value=(None, "skip")), \
@@ -33,7 +33,7 @@ class TestTicketsPage:
         assert "Printer jam" in markdown_text
 
     def test_shows_empty_state_when_no_tickets(self):
-        at = _authenticated_app_test("pages/02_Tickets.py")
+        at = _authenticated_app_test("../pages/02_Tickets.py")
         with patch("utils.api_client.RMMClient.list_tickets", return_value=({"items": []}, None)), \
              patch("utils.api_client.RMMClient.list_customers", return_value=_CUSTOMERS), \
              patch("utils.api_client.RMMClient.assistant_get_conversation", return_value=(None, "skip")), \
@@ -45,7 +45,7 @@ class TestTicketsPage:
         assert "No tickets found" in markdown_text
 
     def test_shows_warning_when_tickets_fail_to_load(self):
-        at = _authenticated_app_test("pages/02_Tickets.py")
+        at = _authenticated_app_test("../pages/02_Tickets.py")
         with patch("utils.api_client.RMMClient.list_tickets", return_value=(None, "Connection refused")), \
              patch("utils.api_client.RMMClient.list_customers", return_value=_CUSTOMERS), \
              patch("utils.api_client.RMMClient.assistant_get_conversation", return_value=(None, "skip")), \
