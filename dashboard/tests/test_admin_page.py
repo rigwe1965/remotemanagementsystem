@@ -58,7 +58,7 @@ class TestAdminPage:
         assert "tech@test.local" in markdown_text
 
     def test_renders_triage_category_row(self):
-        at = _authenticated_app_test("pages/10_Admin.py")
+        at = _authenticated_app_test("../pages/10_Admin.py")
         cats_resp = ([{
             "id": "cat1", "code": "account_access", "label": "Account & Access",
             "description": "Password resets and locked accounts.", "is_active": True,
