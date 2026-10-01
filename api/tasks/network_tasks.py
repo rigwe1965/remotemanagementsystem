@@ -26,6 +26,15 @@ CREATE_NO_WINDOW = 0x08000000 if sys.platform == "win32" else 0
 
 from tasks._app_singleton import get_app as _get_app
 
+# Redis lock — prevents duplicate dispatch when more than one celery beat is
+# accidentally running (same pattern as tasks/alert_tasks.py's _EVAL_LOCK_KEY).
+# Needed because celery's --pidfile does NOT reliably stop a second beat on
+# native Windows (its liveness check reported a genuinely-running process as
+# stale in direct testing — 2026-10-01); a task-level lock is OS-agnostic and
+# protects correctness even if that process-level guard fails.
+_PING_LOCK_KEY = "rmm:ping_agentless:lock"
+_PING_LOCK_TTL = 270  # seconds — expires just before the next 300s beat fires
+
 
 # ── Low-level helpers ─────────────────────────────────────────────────────────
 
@@ -386,36 +395,54 @@ def ping_agentless_devices(self):
     from extensions import db
     from models.device import Device
     from utils.usage_tracker import record_event
+    from utils.cache import _get_client as _get_redis
+
+    try:
+        _r = _get_redis()
+        acquired = _r.set(_PING_LOCK_KEY, "1", nx=True, ex=_PING_LOCK_TTL)
+        if not acquired:
+            logger.info("ping_agentless_devices: skipping — previous run still in progress")
+            return
+    except Exception as exc:
+        logger.warning("ping_agentless_devices: could not acquire lock (%s) — running without it", exc)
+        _r = None
 
     _t0 = _time.perf_counter()
-    with _get_app().app_context():
-        now = datetime.now(timezone.utc)
-        devices = Device.query.filter_by(is_agentless=True).filter(
-            Device.ip_address.isnot(None)
-        ).all()
+    try:
+        with _get_app().app_context():
+            now = datetime.now(timezone.utc)
+            devices = Device.query.filter_by(is_agentless=True).filter(
+                Device.ip_address.isnot(None)
+            ).all()
 
-        def _check(device):
-            return device.ip_address, _ping_host(device.ip_address)
+            def _check(device):
+                return device.ip_address, _ping_host(device.ip_address)
 
-        ip_to_device = {d.ip_address: d for d in devices}
-        with ThreadPoolExecutor(max_workers=min(50, len(devices) or 1)) as pool:
-            for ip, alive in pool.map(_check, devices):
-                device = ip_to_device[ip]
-                if alive:
-                    device.is_online = True
-                    device.status = "healthy"
-                    device.last_seen = now
-                else:
-                    if device.last_seen:
-                        age_seconds = (now - device.last_seen.replace(tzinfo=timezone.utc)
-                                       if device.last_seen.tzinfo is None
-                                       else (now - device.last_seen)).total_seconds()
-                        if age_seconds > 600:
-                            device.is_online = False
-                            device.status = "offline"
+            ip_to_device = {d.ip_address: d for d in devices}
+            with ThreadPoolExecutor(max_workers=min(50, len(devices) or 1)) as pool:
+                for ip, alive in pool.map(_check, devices):
+                    device = ip_to_device[ip]
+                    if alive:
+                        device.is_online = True
+                        device.status = "healthy"
+                        device.last_seen = now
                     else:
-                        device.is_online = False
+                        if device.last_seen:
+                            age_seconds = (now - device.last_seen.replace(tzinfo=timezone.utc)
+                                           if device.last_seen.tzinfo is None
+                                           else (now - device.last_seen)).total_seconds()
+                            if age_seconds > 600:
+                                device.is_online = False
+                                device.status = "offline"
+                        else:
+                            device.is_online = False
 
-        db.session.commit()
-        record_event(service="network_scan", feature=f"agentless_ping:{len(devices)}_devices", status="success",
-                     latency_ms=int((_time.perf_counter() - _t0) * 1000))
+            db.session.commit()
+            record_event(service="network_scan", feature=f"agentless_ping:{len(devices)}_devices", status="success",
+                         latency_ms=int((_time.perf_counter() - _t0) * 1000))
+    finally:
+        if _r is not None:
+            try:
+                _r.delete(_PING_LOCK_KEY)
+            except Exception:
+                pass

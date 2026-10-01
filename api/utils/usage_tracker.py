@@ -43,7 +43,12 @@ def estimate_cost(model: str, input_tokens, output_tokens):
 
 def record_event(service, feature=None, user_id=None, input_tokens=None, output_tokens=None,
                   status="success", status_code=None, latency_ms=None, error=None, model=None):
-    """Write one ApiUsageEvent row. Never raises."""
+    """Write one ApiUsageEvent row. Never raises.
+
+    Safe to call during tests — this writes via db.session, which
+    api/tests/conftest.py already points at an isolated in-memory SQLite DB
+    per test run (unlike record_internal_api_call below, which goes through
+    the real shared Redis instance and needs its own TESTING guard)."""
     try:
         from extensions import db
         from models.usage import ApiUsageEvent
@@ -77,9 +82,24 @@ def record_event(service, feature=None, user_id=None, input_tokens=None, output_
 def record_internal_api_call(endpoint, method, status_code, latency_ms):
     """Cheap Redis HINCRBY counter for internal Flask API request volume — too
     high-volume to write one DB row per request. Rolled into a durable Postgres
-    table hourly by tasks.usage_tasks.persist_hourly_usage_rollup."""
+    table hourly by tasks.usage_tasks.persist_hourly_usage_rollup.
+
+    No-ops under pytest (Flask TESTING=True). api/tests/conftest.py isolates the
+    test DB (SQLite in-memory) but intentionally does NOT isolate REDIS_URL from
+    the real dev instance, so without this guard every pytest run — including
+    role-gating/validation tests that deliberately assert 401/403/404/422/429 —
+    writes into the exact same Redis counters the live dev server's Usage
+    Monitoring dashboard reads. That previously inflated the dashboard's
+    internal_api call/error counts with test noise (found 2026-10-01: a 14.3%
+    "error rate" that was actually hundreds of intentional test assertions)."""
     if not endpoint:
         return
+    try:
+        from flask import current_app
+        if current_app.testing:
+            return
+    except Exception:
+        pass
     try:
         from utils.cache import _get_client
         client = _get_client()

@@ -75,6 +75,7 @@ api/celerybeat-schedule-wal
 api/celerybeat-schedule.bak
 api/celerybeat-schedule.dat
 api/celerybeat-schedule.dir
+api/celerybeat.pid
 
 # PyInstaller
 agent/dist/
