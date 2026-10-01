@@ -4,5 +4,5 @@ pywin32==308
 wmi==1.5.1
 cryptography==50.0.1
 schedule==1.2.2
-Pillow>=10.0.0,<13.0.0
+Pillow>=12.3.0,<13.0.0
 keyring>=25.0.0,<26.0.0  # audits/security_audit.md Finding D2 — upper-bound every dependency
