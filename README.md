@@ -72,8 +72,8 @@ Managed Android phones (no RMM agent installed)
 
 ```bash
 # 1. Clone
-git clone https://github.com/Obinwanne1/RemoteManagementSystem.git
-cd RemoteManagementSystem
+git clone https://github.com/rigwe1965/remotemanagementsystem.git
+cd remotemanagementsystem
 
 # 2. Create API env file
 cp .env.example api/.env

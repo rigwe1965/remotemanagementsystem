@@ -1,8 +1,6 @@
-"""API & Token Usage Monitoring — strictly superadmin-only.
+"""API & Token Usage Monitoring — admin and superadmin only.
 
-Unlike every other route file's _require_role() (which lets superadmin bypass
-an admin/technician list), this blueprint has NO bypass list at all: even a
-plain `admin` gets 403. This data is a level above ordinary admin access.
+Restricted to admin/superadmin — technician, viewer, and client roles get 403.
 """
 import logging
 from datetime import datetime, timezone, timedelta
@@ -21,9 +19,9 @@ usage_bp = Blueprint("usage", __name__)
 _RANGES = {"today": timedelta(hours=24), "7d": timedelta(days=7), "30d": timedelta(days=30)}
 
 
-def _require_superadmin():
-    if get_jwt().get("role") != "superadmin":
-        return jsonify({"error": "Super Administrator access required"}), 403
+def _require_admin():
+    if get_jwt().get("role") not in ("admin", "superadmin"):
+        return jsonify({"error": "Administrator access required"}), 403
     return None
 
 
@@ -35,7 +33,7 @@ def _range_start(range_key: str) -> datetime:
 @usage_bp.route("/summary", methods=["GET"])
 @jwt_required()
 def summary():
-    err = _require_superadmin()
+    err = _require_admin()
     if err:
         return err
 
@@ -117,7 +115,7 @@ def summary():
 @usage_bp.route("/timeseries", methods=["GET"])
 @jwt_required()
 def timeseries():
-    err = _require_superadmin()
+    err = _require_admin()
     if err:
         return err
 
@@ -159,7 +157,7 @@ def timeseries():
 @usage_bp.route("/by-feature", methods=["GET"])
 @jwt_required()
 def by_feature():
-    err = _require_superadmin()
+    err = _require_admin()
     if err:
         return err
 
@@ -208,7 +206,7 @@ def by_feature():
 @usage_bp.route("/events", methods=["GET"])
 @jwt_required()
 def events():
-    err = _require_superadmin()
+    err = _require_admin()
     if err:
         return err
 
@@ -236,7 +234,7 @@ def events():
 @usage_bp.route("/alert-config", methods=["GET"])
 @jwt_required()
 def get_alert_config():
-    err = _require_superadmin()
+    err = _require_admin()
     if err:
         return err
     return jsonify(UsageAlertConfig.get_or_create().to_dict()), 200
@@ -245,7 +243,7 @@ def get_alert_config():
 @usage_bp.route("/alert-config", methods=["PUT"])
 @jwt_required()
 def update_alert_config():
-    err = _require_superadmin()
+    err = _require_admin()
     if err:
         return err
 

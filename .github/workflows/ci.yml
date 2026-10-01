@@ -87,11 +87,17 @@ jobs:
         # tracked, not silently ignored. --ignore-vuln only covers pyasn1's 4
         # known advisories; any new one, or a vulnerability anywhere else,
         # fails the build.
+        #
+        # agent/requirements.txt is deliberately NOT audited here — pip-audit
+        # has to actually resolve/install each package to scan it, and that
+        # file pins pywin32 (no Linux wheel at all), so running it on this
+        # ubuntu-latest runner always fails with "no matching distribution"
+        # regardless of any real vulnerability. It's audited instead from the
+        # windows-latest test-agent job below, where pywin32 can install.
         run: |
           pip-audit -r api/requirements.txt \
             --ignore-vuln PYSEC-2026-2263 --ignore-vuln PYSEC-2026-3455 \
             --ignore-vuln PYSEC-2026-3456 --ignore-vuln PYSEC-2026-3457
-          pip-audit -r agent/requirements.txt
           pip-audit -r dashboard/requirements.txt
 
       - name: Run database migrations
@@ -161,7 +167,13 @@ jobs:
 
       - name: Install dependencies
         working-directory: agent
-        run: pip install -r requirements.txt pytest
+        run: pip install -r requirements.txt pytest pip-audit
+
+      - name: Dependency vulnerability scan (pip-audit)
+        # Moved here from test-backend — this file pins pywin32, which has no
+        # Linux wheel, so it can only be resolved/audited on this Windows runner.
+        working-directory: agent
+        run: pip-audit -r requirements.txt
 
       - name: Run tests
         working-directory: agent
