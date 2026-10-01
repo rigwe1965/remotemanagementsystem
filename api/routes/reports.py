@@ -5,9 +5,13 @@ from models.report import Report
 
 reports_bp = Blueprint("reports", __name__)
 
-# Superadmin-only report type — same restriction as /api/admin/usage/*, since it
-# surfaces the same API/token usage data that regular admins must not see.
-_SUPERADMIN_ONLY_TEMPLATES = ("api_usage",)
+# Admin/superadmin-only report type — same restriction as /api/admin/usage/*,
+# since it surfaces the same API/token usage data.
+_USAGE_RESTRICTED_TEMPLATES = ("api_usage",)
+
+
+def _is_admin_or_above() -> bool:
+    return get_jwt().get("role") in ("admin", "superadmin")
 
 
 @reports_bp.route("/templates", methods=["GET"])
@@ -20,7 +24,7 @@ def list_templates():
         {"type": "software_inventory", "name": "Software Inventory Report"},
         {"type": "billing", "name": "Billing Report"},
     ]
-    if get_jwt().get("role") == "superadmin":
+    if _is_admin_or_above():
         templates.append({"type": "api_usage", "name": "API & Token Usage Report"})
     return jsonify(templates), 200
 
@@ -28,10 +32,9 @@ def list_templates():
 @reports_bp.route("/", methods=["GET"])
 @jwt_required()
 def list_reports():
-    is_superadmin = get_jwt().get("role") == "superadmin"
     q = Report.query
-    if not is_superadmin:
-        q = q.filter(Report.template_type.notin_(_SUPERADMIN_ONLY_TEMPLATES))
+    if not _is_admin_or_above():
+        q = q.filter(Report.template_type.notin_(_USAGE_RESTRICTED_TEMPLATES))
     reports = q.order_by(Report.generated_at.desc()).limit(100).all()
     return jsonify([r.to_dict() for r in reports]), 200
 
@@ -43,8 +46,8 @@ def generate_report():
     template_type = data.get("template_type")
     if not template_type:
         return jsonify({"error": "template_type required"}), 400
-    if template_type in _SUPERADMIN_ONLY_TEMPLATES and get_jwt().get("role") != "superadmin":
-        return jsonify({"error": "Super Administrator access required"}), 403
+    if template_type in _USAGE_RESTRICTED_TEMPLATES and not _is_admin_or_above():
+        return jsonify({"error": "Administrator access required"}), 403
 
     report = Report(
         name=data.get("name", f"{template_type} report"),
@@ -65,6 +68,6 @@ def generate_report():
 @jwt_required()
 def get_report(report_id):
     report = db.get_or_404(Report, report_id)
-    if report.template_type in _SUPERADMIN_ONLY_TEMPLATES and get_jwt().get("role") != "superadmin":
-        return jsonify({"error": "Super Administrator access required"}), 403
+    if report.template_type in _USAGE_RESTRICTED_TEMPLATES and not _is_admin_or_above():
+        return jsonify({"error": "Administrator access required"}), 403
     return jsonify(report.to_dict()), 200
