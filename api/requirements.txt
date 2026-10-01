@@ -47,5 +47,5 @@ pysnmp>=4.4.12,<5.0.0
 # subsystem rewrite, not a version bump) — out of scope for this pass. Risk is
 # narrow (SNMP response *parsing* only, from devices already on the polled
 # customer's own network) but real; tracked here rather than silently ignored.
-pyasn1<0.5.0
+pyasn1<0.7.0
 google-auth>=2.30.0,<3.0.0
