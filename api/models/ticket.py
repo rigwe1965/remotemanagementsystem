@@ -29,6 +29,18 @@ class Ticket(db.Model):
     requester_email = db.Column(db.String(255), nullable=True)
     requester_name = db.Column(db.String(255), nullable=True)
 
+    # ── AI triage (see services/ticket_triage_service.py) ──────────────────────
+    category = db.Column(db.String(50), nullable=True, index=True)
+    ai_suggested_category = db.Column(db.String(50), nullable=True)
+    ai_confidence = db.Column(db.Float, nullable=True)
+    ai_suggested_reply = db.Column(db.Text, nullable=True)
+    ai_reasoning = db.Column(db.Text, nullable=True)  # internal-only — never emailed to the customer
+    triage_status = db.Column(db.String(20), nullable=True, index=True)
+    # pending/escalated/staged/auto_resolved/reopened/skipped/error
+    auto_resolved = db.Column(db.Boolean, default=False, nullable=False)
+    triage_model = db.Column(db.String(60), nullable=True)
+    triaged_at = db.Column(db.DateTime(timezone=True), nullable=True)
+
     comments = db.relationship("TicketComment", backref="ticket", lazy="dynamic",
                                cascade="all, delete-orphan")
 
@@ -55,6 +67,15 @@ class Ticket(db.Model):
             "email_thread_id": self.email_thread_id,
             "requester_email": self.requester_email,
             "requester_name": self.requester_name,
+            "category": self.category,
+            "ai_suggested_category": self.ai_suggested_category,
+            "ai_confidence": self.ai_confidence,
+            "ai_suggested_reply": self.ai_suggested_reply,
+            "ai_reasoning": self.ai_reasoning,
+            "triage_status": self.triage_status,
+            "auto_resolved": self.auto_resolved,
+            "triage_model": self.triage_model,
+            "triaged_at": self.triaged_at.isoformat() if self.triaged_at else None,
         }
         if include_comments:
             d["comments"] = [c.to_dict() for c in self.comments.order_by(TicketComment.created_at)]

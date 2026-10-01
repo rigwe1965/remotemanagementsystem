@@ -131,8 +131,23 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+TRIAGE_STATUS_LABELS = {
+    "pending": "Queued for AI triage",
+    "escalated": "Escalated to human review",
+    "staged": "AI draft awaiting approval",
+    "auto_resolved": "Auto-resolved by AI",
+    "reopened": "Reopened after customer reply",
+    "skipped": "AI triage skipped (rate-limited)",
+    "error": "AI triage failed",
+}
+
 # ── Action tabs ───────────────────────────────────────────────────────────────
-tab_status, tab_assign, tab_comments = st.tabs(["Update Status", "Assignment", "Comments"])
+tab_names = ["Update Status", "Assignment", "Comments"]
+if ticket.get("triage_status"):
+    tab_names.append("AI Triage")
+_tabs = st.tabs(tab_names)
+tab_status, tab_assign, tab_comments = _tabs[0], _tabs[1], _tabs[2]
+tab_triage = _tabs[3] if len(_tabs) > 3 else None
 
 # Load user list once (needed for assignment tabs)
 users_data, _ = client.list_users()
@@ -314,6 +329,76 @@ with tab_comments:
             else:
                 st.success("Comment posted.")
                 st.rerun()
+
+# ── AI Triage tab ─────────────────────────────────────────────────────────────
+if tab_triage is not None:
+    with tab_triage:
+        st.markdown(section_header("AI Triage"), unsafe_allow_html=True)
+
+        triage_status = ticket.get("triage_status")
+        category = ticket.get("category") or ticket.get("ai_suggested_category")
+        confidence = ticket.get("ai_confidence")
+
+        status_label = TRIAGE_STATUS_LABELS.get(triage_status, triage_status or "—")
+        conf_text = f"{confidence * 100:.0f}% confidence" if confidence is not None else "confidence n/a"
+        st.markdown(
+            f'<div style="display:flex;gap:8px;align-items:center;margin-bottom:0.75rem">'
+            + badge(status_label, BRAND.get("accent", "#5a9e56"))
+            + (badge(category, "#6B7B6B") if category else "")
+            + f'<span style="font-size:0.78rem;color:#6B7B6B">{conf_text}</span>'
+            + "</div>",
+            unsafe_allow_html=True,
+        )
+
+        if ticket.get("ai_reasoning"):
+            st.caption(f"AI reasoning (internal only): {esc(ticket['ai_reasoning'])}")
+
+        if triage_status == "staged":
+            st.markdown(
+                '<div style="background:#FEF3C7;border:1px solid #D97706;border-radius:6px;'
+                'padding:0.5rem 0.85rem;font-size:0.82rem;color:#92400E;margin-bottom:0.75rem">'
+                'This category is in shadow mode — the AI drafted a reply below but will not send it '
+                'or resolve the ticket until a technician approves it.</div>',
+                unsafe_allow_html=True,
+            )
+            draft = st.text_area(
+                "Draft reply (editable before sending)",
+                value=ticket.get("ai_suggested_reply") or "",
+                height=140, key="triage_draft_reply",
+            )
+            tc1, tc2 = st.columns(2)
+            with tc1:
+                if st.button("Approve & Send", key="triage_approve_btn", type="primary", width='stretch'):
+                    override = draft if draft != (ticket.get("ai_suggested_reply") or "") else None
+                    _, aerr = client.approve_triage(ticket_id, reply_override=override)
+                    if aerr:
+                        st.error(f"Approve failed: {aerr}")
+                    else:
+                        st.success("Reply sent and ticket resolved.")
+                        st.rerun()
+            with tc2:
+                if st.button("Reject (escalate to me)", key="triage_reject_btn", width='stretch'):
+                    _, rerr = client.reject_triage(ticket_id, assignee_id=my_id)
+                    if rerr:
+                        st.error(f"Reject failed: {rerr}")
+                    else:
+                        st.success("Escalated — assigned to you.")
+                        st.rerun()
+        elif triage_status == "auto_resolved":
+            st.markdown(
+                '<div style="font-size:0.75rem;font-weight:700;text-transform:uppercase;'
+                'letter-spacing:0.07em;color:#6B7B6B;margin-bottom:0.4rem">Reply sent to customer</div>',
+                unsafe_allow_html=True,
+            )
+            st.markdown(
+                '<div style="background:#F4F6F4;border-radius:8px;padding:0.75rem 1rem;'
+                'border-left:3px solid #407E3C;font-size:0.85rem;color:#1A1A1A">'
+                + esc(ticket.get("ai_suggested_reply") or "").replace("\n", "<br>")
+                + "</div>",
+                unsafe_allow_html=True,
+            )
+        elif triage_status == "escalated":
+            st.caption("This ticket needs normal human handling — use the Update Status / Assignment tabs.")
 
 render_ai_assistant("Tickets", {
     "ticket_id": ticket.get("id"), "title": ticket.get("title"),

@@ -5,7 +5,6 @@ import os
 import re
 import time
 import logging
-from datetime import datetime, timezone, timedelta
 from email.header import decode_header as _raw_decode
 from email.utils import parseaddr
 
@@ -16,7 +15,6 @@ logger = logging.getLogger(__name__)
 from tasks._app_singleton import get_app as _get_app
 
 _TICKET_REF_RE = re.compile(r"\[Ticket #([A-F0-9]{8})\]", re.IGNORECASE)
-_SLA_HOURS = {"critical": 4, "high": 8, "medium": 24, "low": 72}
 
 
 # ── Parsing helpers ────────────────────────────────────────────────────────────
@@ -133,11 +131,11 @@ def poll_support_inbox(self):
         return
 
     from extensions import db
-    from models.ticket import Ticket, TicketComment
+    from services.ticket_service import create_ticket_service, update_ticket_service, add_comment_service
     from utils.notifications import (
         send_email_ticket_confirmation,
         send_ticket_comment_to_assignee,
-        send_ticket_comment_to_client,
+        send_ticket_escalated_notification,
     )
 
     from utils.usage_tracker import record_event
@@ -179,16 +177,30 @@ def poll_support_inbox(self):
                     existing = _find_ticket(in_reply_to, references, subject)
 
                     if existing:
+                        # A reply to an AI-auto-resolved ticket means the AI's fix didn't
+                        # stick — reopen it and route straight to a human. Does NOT
+                        # re-trigger triage; reopened tickets always go to a person.
+                        if existing.status == "resolved" and existing.auto_resolved:
+                            update_ticket_service(
+                                None, "system", existing,
+                                status="in_progress",
+                                status_comment="Reopened automatically — customer replied to an AI-resolved ticket.",
+                                skip_status_comment_requirement=True,
+                            )
+                            existing.auto_resolved = False
+                            existing.triage_status = "reopened"
+                            db.session.commit()
+                            try:
+                                send_ticket_escalated_notification(
+                                    existing, reason="Customer reply reopened an AI-resolved ticket")
+                            except Exception:
+                                pass
+
                         # Add as comment on existing ticket
-                        comment = TicketComment(
-                            ticket_id=existing.id,
-                            author_id=None,
-                            author_email=sender["email"],
-                            body=body or "(empty reply)",
-                            is_internal=False,
+                        add_comment_service(
+                            None, "system", existing,
+                            body=body or "(empty reply)", is_internal=False, author_email=sender["email"],
                         )
-                        db.session.add(comment)
-                        db.session.commit()
 
                         try:
                             if existing.assignee_id:
@@ -205,11 +217,17 @@ def poll_support_inbox(self):
                         logger.info("Added email reply as comment on ticket %s", existing.id)
 
                     else:
-                        # Create new ticket
+                        # Create new ticket — always creates one if any customer can be
+                        # resolved (known sender, DEFAULT_INBOUND_CUSTOMER_ID, or the
+                        # UNASSIGNED_INBOUND_CUSTOMER_ID catch-all) so inbound support
+                        # email is never silently dropped.
                         customer_id = _find_customer_id(sender["email"])
                         if not customer_id:
+                            customer_id = os.getenv("UNASSIGNED_INBOUND_CUSTOMER_ID", "")
+                        if not customer_id:
                             logger.warning(
-                                "No customer found for %s and DEFAULT_INBOUND_CUSTOMER_ID not set — skipping",
+                                "No customer found for %s and no DEFAULT_INBOUND_CUSTOMER_ID / "
+                                "UNASSIGNED_INBOUND_CUSTOMER_ID set — skipping",
                                 sender["email"],
                             )
                             mail.store(mid, "+FLAGS", "\\Seen")
@@ -219,29 +237,26 @@ def poll_support_inbox(self):
                         clean_subject = re.sub(r"^(re|fwd|fw):\s*", "", subject, flags=re.IGNORECASE).strip()
                         clean_subject = _TICKET_REF_RE.sub("", clean_subject).strip() or "(No subject)"
 
-                        ticket = Ticket(
-                            title=clean_subject,
-                            description=body,
-                            customer_id=customer_id,
-                            source="email",
-                            priority="medium",
-                            status="open",
+                        ticket_dict, create_err = create_ticket_service(
+                            None, "system", None,
+                            title=clean_subject, description=body, customer_id=customer_id,
+                            priority="medium", source="email",
+                            requester_email=sender["email"], requester_name=sender["name"] or sender["email"],
                             email_thread_id=message_id,
-                            requester_email=sender["email"],
-                            requester_name=sender["name"] or sender["email"],
-                            due_date=datetime.now(timezone.utc) + timedelta(hours=_SLA_HOURS["medium"]),
                         )
-                        db.session.add(ticket)
-                        db.session.commit()
+                        if create_err:
+                            logger.warning("Failed to create ticket from email by %s: %s", sender["email"], create_err)
+                            mail.store(mid, "+FLAGS", "\\Seen")
+                            continue
 
                         try:
                             send_email_ticket_confirmation(
-                                ticket.title, ticket.id, sender["email"],
+                                ticket_dict["title"], ticket_dict["id"], sender["email"],
                             )
                         except Exception:
                             pass
 
-                        logger.info("Created ticket %s from email by %s", ticket.id, sender["email"])
+                        logger.info("Created ticket %s from email by %s", ticket_dict["id"], sender["email"])
 
                     mail.store(mid, "+FLAGS", "\\Seen")
 

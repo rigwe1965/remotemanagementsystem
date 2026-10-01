@@ -49,6 +49,8 @@ _TABLE_CSS = """
 .bs-resolved{background:#DCFCE7;color:#16A34A}
 .bs-closed{background:#F3F4F6;color:#6B7B6B}
 .src{display:inline-block;border-radius:10px;padding:2px 8px;font-size:0.68rem;font-weight:700;white-space:nowrap;line-height:1.7}
+.triage-staged{background:#FEF3C7;color:#92400E}
+.triage-auto{background:#DCFCE7;color:#166534}
 .sla-breached{color:#DC2626;font-weight:700;font-size:0.78rem}
 .sla-warn{color:#D97706;font-weight:700;font-size:0.78rem}
 .sla-ok{color:#9CA3AF;font-size:0.78rem}
@@ -409,9 +411,15 @@ def _render_tickets(tickets_list: list, tab_key: str) -> None:
                 unsafe_allow_html=True,
             )
         with rcols[2]:
+            triage_status = t.get("triage_status")
+            triage_chip = ""
+            if triage_status == "staged":
+                triage_chip = ' <span class="src triage-staged">AI DRAFT — NEEDS APPROVAL</span>'
+            elif triage_status == "auto_resolved":
+                triage_chip = ' <span class="src triage-auto">AI RESOLVED</span>'
             st.markdown(
                 f'<span style="font-size:0.84rem;color:#1A1A1A;font-weight:500">'
-                f'{esc(t.get("title", "Untitled"))}</span>',
+                f'{esc(t.get("title", "Untitled"))}</span>{triage_chip}',
                 unsafe_allow_html=True,
             )
         with rcols[3]:

@@ -104,7 +104,7 @@ def create_app(config_name=None):
     with app.app_context():
         from models import user, device, customer, alert, ticket, patch, script, automation, report, billing, audit  # noqa
         from models import org_settings, user_session, department, terminal, sla_policy, psa_integration  # noqa
-        from models import mdm_integration, ai_conversation, usage  # noqa
+        from models import mdm_integration, ai_conversation, usage, triage_category  # noqa
         try:
             from utils.builtin_scripts import ensure_builtin_scripts
             ensure_builtin_scripts()
@@ -227,6 +227,7 @@ def create_app(config_name=None):
     from routes.psa import psa_bp
     from routes.mobile_mdm import mobile_mdm_bp
     from routes.usage import usage_bp
+    from routes.ticket_triage import ticket_triage_bp, _triage_categories_bp
 
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
     app.register_blueprint(agents_bp, url_prefix="/api/agents")
@@ -253,6 +254,8 @@ def create_app(config_name=None):
     app.register_blueprint(psa_bp, url_prefix="/api/psa")
     app.register_blueprint(mobile_mdm_bp, url_prefix="/api/mdm")
     app.register_blueprint(usage_bp, url_prefix="/api/admin/usage")
+    app.register_blueprint(ticket_triage_bp, url_prefix="/api/tickets")
+    app.register_blueprint(_triage_categories_bp, url_prefix="/api/triage/categories")
 
     import redis as redis_lib
     _redis_client = redis_lib.from_url(

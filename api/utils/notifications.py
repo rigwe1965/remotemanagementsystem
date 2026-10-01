@@ -467,6 +467,66 @@ def send_ticket_comment_to_client(ticket_title: str, ticket_id: str, comment_bod
     return ok
 
 
+def send_ai_ticket_resolution(ticket_title: str, ticket_id: str, draft_reply: str, client_emails: list,
+                              requester_email: str = None, auto_close_days: int = 7) -> bool:
+    """Send the AI's drafted reply to the customer for an auto-resolved ticket.
+    Threaded as a reply (in_reply=True) so a customer reply is recognized by
+    poll_support_inbox's _find_ticket() and reopens the ticket."""
+    subject = _ticket_subject(ticket_id, ticket_title)
+    body = (
+        f"Your support ticket has been resolved.\n\n"
+        f"  Subject: {ticket_title}\n"
+        f"  Ref:     {ticket_id[:8].upper()}\n\n"
+        f"{draft_reply}\n\n"
+        f"If this didn't resolve your issue, simply reply to this email and a member of "
+        f"our team will take over.\n\n"
+        f"This ticket will automatically close in {auto_close_days} day(s) if we don't hear back.\n\n"
+        f"---\nRMM Support System\n"
+    )
+    recipients = list({*(client_emails or []), *([requester_email] if requester_email else [])})
+    if not recipients:
+        return False
+    ok = _smtp_send(subject, body, recipients, _ticket_headers(ticket_id, in_reply=True))
+    if ok:
+        logger.info("AI resolution reply sent to %d recipient(s) for ticket %s", len(recipients), ticket_id)
+    return ok
+
+
+def send_ticket_escalated_notification(ticket, reason: str) -> bool:
+    """Internal-facing notification when AI triage escalates a ticket to a human
+    (or a reply reopens an AI-resolved one). Recipient is the ticket's assignee
+    if set, else TRIAGE_ESCALATION_FALLBACK_EMAILS — there's no "department lead"
+    lookup in this codebase yet to route to instead."""
+    recipients = []
+    if ticket.assignee_id:
+        from models.user import User
+        from extensions import db
+        assignee = db.session.get(User, ticket.assignee_id)
+        if assignee and assignee.email:
+            recipients = [assignee.email]
+    if not recipients:
+        fallback = os.getenv("TRIAGE_ESCALATION_FALLBACK_EMAILS", "")
+        recipients = [e.strip() for e in fallback.split(",") if e.strip()]
+    if not recipients:
+        return False
+
+    subject = _ticket_subject(ticket.id, ticket.title, "[RMM AI Triage]")
+    body = (
+        f"A ticket needs human review.\n\n"
+        f"  Subject:  {ticket.title}\n"
+        f"  Ref:      {ticket.id[:8].upper()}\n"
+        f"  Reason:   {reason}\n"
+        f"  Category: {ticket.ai_suggested_category or 'uncategorized'}"
+        f" (confidence: {ticket.ai_confidence if ticket.ai_confidence is not None else 'n/a'})\n\n"
+        f"Log in to the RMM dashboard to review and respond.\n\n"
+        f"---\nRMM System\n"
+    )
+    ok = _smtp_send(subject, body, recipients, _ticket_headers(ticket.id))
+    if ok:
+        logger.info("Escalation notification sent to %d recipient(s) for ticket %s", len(recipients), ticket.id)
+    return ok
+
+
 def send_ticket_comment_to_assignee(ticket_title: str, ticket_id: str, comment_body: str, assignee_email: str) -> bool:
     """Notify assignee that the client replied to their ticket."""
     subject = _ticket_subject(ticket_id, ticket_title, "[RMM]")

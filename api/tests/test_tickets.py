@@ -1,5 +1,6 @@
 ﻿"""Tests for ticket CRUD, SLA due_date calculation, comments, and role-gating."""
 import uuid
+from unittest.mock import patch
 import pytest
 from conftest import create_user, delete_user, login, auth_headers
 
@@ -191,6 +192,50 @@ class TestTicketSLA:
             due = r.get_json()["due_date"]
             delta_hours = (_parse_due(due) - datetime.now(timezone.utc)).total_seconds() / 3600
             assert 71 <= delta_hours <= 73, f"Low SLA should be ~72h, got {delta_hours:.1f}h"
+        finally:
+            delete_user(app, uid)
+            _del_customer(app, cust.id)
+
+
+class TestTicketTriageScheduling:
+    """create_ticket_service is the single scheduling point for AI triage — every
+    caller (this route, the AI assistant's create_ticket tool, the email poller)
+    goes through it, so every new ticket gets triaged regardless of source."""
+
+    def test_create_schedules_triage_task(self, app, client):
+        uid, email, pw = create_user(app, role="admin")
+        cust = _make_customer(app)
+        try:
+            tok = login(client, email, pw).get_json()["access_token"]
+            with patch("tasks.triage_tasks.triage_ticket.delay") as mock_delay:
+                r = client.post(
+                    "/api/tickets/",
+                    json={"title": "Needs triage", "customer_id": cust.id},
+                    headers=auth_headers(tok),
+                    content_type="application/json",
+                )
+            assert r.status_code == 201
+            mock_delay.assert_called_once_with(r.get_json()["id"])
+            assert r.get_json()["triage_status"] == "pending"
+        finally:
+            delete_user(app, uid)
+            _del_customer(app, cust.id)
+
+    def test_create_does_not_schedule_triage_when_disabled(self, app, client, monkeypatch):
+        monkeypatch.setenv("AI_TRIAGE_ENABLED", "false")
+        uid, email, pw = create_user(app, role="admin")
+        cust = _make_customer(app)
+        try:
+            tok = login(client, email, pw).get_json()["access_token"]
+            with patch("tasks.triage_tasks.triage_ticket.delay") as mock_delay:
+                r = client.post(
+                    "/api/tickets/",
+                    json={"title": "No triage", "customer_id": cust.id},
+                    headers=auth_headers(tok),
+                    content_type="application/json",
+                )
+            assert r.status_code == 201
+            mock_delay.assert_not_called()
         finally:
             delete_user(app, uid)
             _del_customer(app, cust.id)

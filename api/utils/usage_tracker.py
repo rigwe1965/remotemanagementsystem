@@ -20,7 +20,7 @@ _MODEL_PRICING = {
 
 _MIN_EVENTS_FOR_SIGNAL = 5  # ignore low-volume noise when computing spike multipliers
 _KNOWN_SERVICES = (
-    "ai_assistant", "stripe", "psa_connectwise", "psa_autotask", "android_mdm",
+    "ai_assistant", "ai_ticket_triage", "stripe", "psa_connectwise", "psa_autotask", "android_mdm",
     "email_imap", "network_scan", "webhook_slack", "webhook_teams", "webhook_generic", "smtp",
 )
 
