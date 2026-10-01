@@ -11,7 +11,7 @@ flask-jwt-extended==4.7.1
 flask-cors==6.0.5
 flask-limiter==4.1.1
 flask-compress==1.15
-marshmallow==3.26.2
+marshmallow==4.3.1
 celery==5.5.2
 redis==5.2.1
 psycopg2-binary==2.9.12
@@ -30,7 +30,7 @@ anthropic>=0.40.0,<2.0.0
 # upper bound (capped at the next major above what's currently installed and
 # tested), matching the convention paho-mqtt/pysnmp below already use, so a
 # future install can't silently pull in an untested major version.
-cachetools>=5.0.0,<8.0.0
+cachetools>=7.2.0,<8.0.0
 waitress>=3.0.0,<4.0.0
 sentry-sdk[flask]>=2.0.0,<3.0.0
 cryptography>=42.0.0,<51.0.0
@@ -54,4 +54,4 @@ pysnmp>=4.4.12,<5.0.0
 # narrow (SNMP response *parsing* only, from devices already on the polled
 # customer's own network) but real; tracked here rather than silently ignored.
 pyasn1<0.5.0
-google-auth>=2.30.0,<3.0.0
+google-auth>=2.58.1,<3.0.0
