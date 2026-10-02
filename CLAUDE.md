@@ -60,6 +60,28 @@ Check `.claude/state.md` at session start for current phase and context.
 - Celery on Windows: `--pool=solo`
 - One bug fix at a time, verified before moving on
 
+## Environment (Windows)
+- This is a Windows machine. Use PowerShell-compatible commands; do NOT assume `jq`, `/tmp`, or POSIX paths exist.
+- Python/venv paths break often: verify `python --version` and the venv's interpreter target before installing deps. If PATH is missing python/pnpm/gh, print the fix rather than silently failing.
+- Services (PostgreSQL, Redis/Memurai) frequently need elevated install/restart. If a service is wedged or missing, stop and give me ONE copy-pasteable elevated PowerShell block instead of retrying.
+
+## Git & Push Policy
+- Never run bare `git push` or `gh` commands that can hang on an invisible credential/device prompt. Check `gh auth status` and `git config user.email` FIRST; if either is unset, stop and tell me what to run.
+- Git author identity for this machine is already configured — do not re-prompt for it.
+- Prefer `git push 2>&1` with a timeout, and report the exit code explicitly so a stalled push is never reported as success.
+
+## Verification Before Reporting Done
+- After any multi-file change, run the full test suite and report the pass count (e.g. '532/532 passing'). Do not claim completion on a partial run.
+- When starting services, verify with an actual HTTP request (curl the health endpoint) and report the status code — not just 'server started'.
+- When a frontend talks to a backend, confirm the dev-proxy port and CORS origin (localhost vs 127.0.0.1) match before declaring it working.
+
+## Long-Running Work
+- Do not poll or auto-check-in repeatedly on long tasks. Start the work, then report once when it finishes or after a single clearly-stated wait.
+- If an approach is taking longer than a few minutes (AI inpainting, model downloads, large installs), pause and offer a cheaper alternative before continuing.
+
+## Audits
+- Standard audit flow: produce the report with file:line citations, then fix every finding, then run tests, then commit as a separate PR. Save reports to `audits/<type>-audit-YYYY-MM-DD.md`.
+
 ## Services & Ports
 - Flask API: http://localhost:5000
 - Streamlit dashboard: http://localhost:8501
