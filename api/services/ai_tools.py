@@ -15,7 +15,7 @@ from datetime import datetime, timezone, timedelta
 from extensions import db
 from models.ai_conversation import AiPendingAction
 from services import fleet_query_service, device_query_service, ticket_service, alert_service, script_service
-from services.ai_prompt import _DANGER_PATTERNS
+from services.ai_prompt import danger_scan
 from utils.rate_limit import check_and_increment
 
 
@@ -233,7 +233,7 @@ def execute_read_tool(name: str, tool_input: dict, ctx: ToolCtx) -> dict:
 
 def _danger_scan(tool_input: dict) -> bool:
     text = " ".join(str(v) for v in tool_input.values())
-    return any(p.search(text) for p in _DANGER_PATTERNS)
+    return danger_scan(text)
 
 
 def _summarize(name: str, tool_input: dict) -> str:

@@ -24,7 +24,7 @@ from extensions import db
 from models.ticket import Ticket
 from models.triage_category import TriageCategory
 from models.audit import AuditLog
-from services.ai_prompt import _DANGER_PATTERNS
+from services.ai_prompt import danger_scan  # noqa: F401 (re-exported for routes/ticket_triage.py)
 from utils.ai_client import get_anthropic_client, get_model
 from utils.rate_limit import check_and_increment
 from utils.usage_tracker import record_event
@@ -122,12 +122,21 @@ Call categorize_ticket exactly once. Be conservative with confidence — only us
     return system_prompt, user_content
 
 
-def danger_scan(text: str) -> bool:
-    """Reused by routes/ticket_triage.py to re-scan a human-edited reply_override
-    before it's sent on approval."""
-    if not text:
-        return False
-    return any(p.search(text) for p in _DANGER_PATTERNS)
+def send_resolution_notification(ticket: Ticket, reply: str, cat_row) -> None:
+    """Shared by apply_triage_decision's auto-resolve branch below and
+    routes/ticket_triage.py::approve_triage's human-approve path. `cat_row` may be
+    None (e.g. caller couldn't resolve a TriageCategory row) — falls back to the
+    env-var default rather than crashing."""
+    try:
+        from utils.notifications import send_ai_ticket_resolution
+        auto_close_days = (cat_row.auto_close_days if cat_row else None) or int(
+            os.getenv("AI_TRIAGE_AUTO_CLOSE_DAYS", "7"))
+        send_ai_ticket_resolution(
+            ticket.title, ticket.id, reply,
+            [], ticket.requester_email, auto_close_days,
+        )
+    except Exception:
+        logger.warning("AI resolution email failed for ticket %s", ticket.id, exc_info=True)
 
 
 def apply_triage_decision(ticket: Ticket, *, category: str, confidence: float,
@@ -196,15 +205,7 @@ def apply_triage_decision(ticket: Ticket, *, category: str, confidence: float,
     ))
     db.session.commit()
 
-    try:
-        from utils.notifications import send_ai_ticket_resolution
-        auto_close_days = cat_row.auto_close_days or int(os.getenv("AI_TRIAGE_AUTO_CLOSE_DAYS", "7"))
-        send_ai_ticket_resolution(
-            ticket.title, ticket.id, draft_reply,
-            [], ticket.requester_email, auto_close_days,
-        )
-    except Exception:
-        logger.warning("AI resolution email failed for ticket %s", ticket.id, exc_info=True)
+    send_resolution_notification(ticket, draft_reply, cat_row)
 
     return "auto_resolved"
 

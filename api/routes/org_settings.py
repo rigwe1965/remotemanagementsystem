@@ -1,20 +1,14 @@
 import base64
 import io
 from flask import Blueprint, request, jsonify, current_app
-from flask_jwt_extended import jwt_required, get_jwt
+from flask_jwt_extended import jwt_required
 from extensions import db
 from models.org_settings import OrgSettings
 from utils.validation import validate_body
+from utils.auth_decorators import require_role
 from schemas.org_settings import OrgSettingsSchema
 
 org_settings_bp = Blueprint("org_settings", __name__)
-
-
-def _require_admin():
-    claims = get_jwt()
-    if claims.get("role") in ("admin", "superadmin"):
-        return None
-    return jsonify({"error": "Admin access required"}), 403
 
 
 @org_settings_bp.route("/org-settings", methods=["GET"])
@@ -32,7 +26,7 @@ def get_org_settings():
 @jwt_required()
 @validate_body(OrgSettingsSchema)
 def update_org_settings():
-    err = _require_admin()
+    err = require_role("admin")
     if err:
         return err
     data = request.get_json(silent=True) or {}
@@ -54,7 +48,7 @@ def update_org_settings():
 @org_settings_bp.route("/org-settings/logo", methods=["PUT"])
 @jwt_required()
 def upload_org_logo():
-    err = _require_admin()
+    err = require_role("admin")
     if err:
         return err
 
@@ -117,7 +111,7 @@ def public_branding():
 @org_settings_bp.route("/org-settings/logo", methods=["DELETE"])
 @jwt_required()
 def delete_org_logo():
-    err = _require_admin()
+    err = require_role("admin")
     if err:
         return err
     settings = db.session.get(OrgSettings, 1)

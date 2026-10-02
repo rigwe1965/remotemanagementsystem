@@ -8,11 +8,7 @@ from tasks.celery_app import celery
 logger = logging.getLogger(__name__)
 
 from tasks._app_singleton import get_app as _get_app
-
-# Simple circuit breaker: auto-disable an integration after this many consecutive
-# sync failures instead of retrying a permanently-broken one (e.g. revoked
-# credentials) forever every 5-min beat cycle.
-_MAX_CONSECUTIVE_FAILURES = 10
+from tasks._sync_circuit_breaker import record_failure_and_retry
 
 
 @celery.task(name="tasks.mdm_tasks.sync_all_mdm_integrations", bind=True, max_retries=1)
@@ -125,15 +121,4 @@ def sync_mdm_integration(self, mdm_integration_id: str):
             logger.info("MDM sync complete: %s (%d devices)", integration.name, len(remote_devices))
 
         except Exception as exc:
-            logger.error("MDM sync failed for %s: %s", mdm_integration_id, exc)
-            db.session.rollback()
-            integration.sync_error = str(exc)[:500]
-            integration.consecutive_failures = (integration.consecutive_failures or 0) + 1
-            if integration.consecutive_failures >= _MAX_CONSECUTIVE_FAILURES:
-                integration.is_active = False
-                logger.warning(
-                    "Disabling MDM integration %s (%s) after %d consecutive failures",
-                    integration.id, integration.name, integration.consecutive_failures,
-                )
-            db.session.commit()
-            raise self.retry(exc=exc, countdown=120)
+            record_failure_and_retry(self, integration, exc, label="MDM", logger=logger)

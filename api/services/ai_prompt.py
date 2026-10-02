@@ -53,6 +53,15 @@ _DANGER_PATTERNS = [
 
 _CODE_BLOCK_RE = re.compile(r'```[\s\S]*?```', re.MULTILINE)
 
+
+def danger_scan(text: str) -> bool:
+    """Shared by services/ticket_triage_service.py (re-exported there for
+    routes/ticket_triage.py) and services/ai_tools.py (joins its tool_input dict into
+    a string first) — the single place that walks _DANGER_PATTERNS."""
+    if not text:
+        return False
+    return any(p.search(text) for p in _DANGER_PATTERNS)
+
 # ── Page descriptions (injected into system prompt) ───────────────────────────────
 _PAGE_INFO = {
     "Overview": (

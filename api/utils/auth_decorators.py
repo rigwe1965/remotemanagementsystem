@@ -4,11 +4,11 @@ Centralizes the `_require_role(*roles)` guard that was previously copy-pasted
 identically across 14 route files (devices.py, alerts.py, billing.py,
 automation.py, customers.py, network.py, patches.py, psa.py, scripts.py,
 sensors.py, sla_policies.py, terminal.py, tickets.py, mobile_mdm.py) — one
-function to audit/patch instead of 14 drifting copies.
-
-`usage.py`'s `_require_superadmin()` is intentionally NOT this function: it
-has no superadmin bypass (superadmin-only data has no "bypass" concept), so
-it stays local to that blueprint rather than being folded in here.
+function to audit/patch instead of 14 drifting copies. `org_settings.py` and
+`usage.py` also call `require_role("admin")` directly (2026-10 dup-code pass)
+— `admin.py`'s own `_require_admin()` stays separate since it additionally
+loads the `User` row from a fresh DB read for its callers, not just a
+pass/fail check.
 """
 from functools import wraps
 

@@ -7,7 +7,7 @@ from models.ticket import Ticket
 from models.triage_category import TriageCategory
 from models.audit import AuditLog
 from utils.auth_decorators import require_role as _require_role
-from services.ticket_triage_service import danger_scan
+from services.ticket_triage_service import danger_scan, send_resolution_notification
 
 ticket_triage_bp = Blueprint("ticket_triage", __name__)
 
@@ -49,13 +49,8 @@ def approve_triage(ticket_id):
     ))
     db.session.commit()
 
-    try:
-        from utils.notifications import send_ai_ticket_resolution
-        import os
-        auto_close_days = int(os.getenv("AI_TRIAGE_AUTO_CLOSE_DAYS", "7"))
-        send_ai_ticket_resolution(ticket.title, ticket.id, reply, [], ticket.requester_email, auto_close_days)
-    except Exception:
-        pass
+    cat_row = TriageCategory.query.filter_by(code=ticket.category, is_active=True).first()
+    send_resolution_notification(ticket, reply, cat_row)
 
     return jsonify(ticket.to_dict()), 200
 

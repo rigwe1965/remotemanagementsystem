@@ -1,28 +1,27 @@
 """API & Token Usage Monitoring — admin and superadmin only.
 
 Restricted to admin/superadmin — technician, viewer, and client roles get 403.
+Uses the same shared `require_role("admin")` guard as every other route file
+(superadmin always bypasses via that function) — there is no separate
+superadmin-only check here, despite older comments elsewhere in this codebase
+once claiming otherwise.
 """
 import logging
 from datetime import datetime, timezone, timedelta
 
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required, get_jwt
+from flask_jwt_extended import jwt_required
 
 from extensions import db
 from models.usage import ApiUsageEvent, ApiUsageHourly, UsageAlertConfig
 from utils.usage_tracker import compute_anomalies
+from utils.auth_decorators import require_role
 
 log = logging.getLogger(__name__)
 
 usage_bp = Blueprint("usage", __name__)
 
 _RANGES = {"today": timedelta(hours=24), "7d": timedelta(days=7), "30d": timedelta(days=30)}
-
-
-def _require_admin():
-    if get_jwt().get("role") not in ("admin", "superadmin"):
-        return jsonify({"error": "Administrator access required"}), 403
-    return None
 
 
 def _range_start(range_key: str) -> datetime:
@@ -33,7 +32,7 @@ def _range_start(range_key: str) -> datetime:
 @usage_bp.route("/summary", methods=["GET"])
 @jwt_required()
 def summary():
-    err = _require_admin()
+    err = require_role("admin")
     if err:
         return err
 
@@ -115,7 +114,7 @@ def summary():
 @usage_bp.route("/timeseries", methods=["GET"])
 @jwt_required()
 def timeseries():
-    err = _require_admin()
+    err = require_role("admin")
     if err:
         return err
 
@@ -157,7 +156,7 @@ def timeseries():
 @usage_bp.route("/by-feature", methods=["GET"])
 @jwt_required()
 def by_feature():
-    err = _require_admin()
+    err = require_role("admin")
     if err:
         return err
 
@@ -206,7 +205,7 @@ def by_feature():
 @usage_bp.route("/events", methods=["GET"])
 @jwt_required()
 def events():
-    err = _require_admin()
+    err = require_role("admin")
     if err:
         return err
 
@@ -234,7 +233,7 @@ def events():
 @usage_bp.route("/alert-config", methods=["GET"])
 @jwt_required()
 def get_alert_config():
-    err = _require_admin()
+    err = require_role("admin")
     if err:
         return err
     return jsonify(UsageAlertConfig.get_or_create().to_dict()), 200
@@ -243,7 +242,7 @@ def get_alert_config():
 @usage_bp.route("/alert-config", methods=["PUT"])
 @jwt_required()
 def update_alert_config():
-    err = _require_admin()
+    err = require_role("admin")
     if err:
         return err
 
