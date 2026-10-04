@@ -636,6 +636,62 @@ for tab, name in zip(tabs, tab_names):
                 else:
                     _render_agent_row(device, tab_key=name, latest_version=_latest_agent_version)
 
+# ── Add Device (manual, agentless — for printers/NAS/routers/anything without an agent) ───
+st.markdown("<div style='height:1rem'></div>", unsafe_allow_html=True)
+
+with st.expander("+ Add Device"):
+    st.markdown(
+        '<div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;'
+        'color:#6B7B6B;margin-bottom:0.75rem">New Device Details — for devices that can\'t run the agent</div>',
+        unsafe_allow_html=True,
+    )
+    _cust_data, _cust_err = client.list_customers(per_page=200)
+    if _cust_err:
+        st.caption(f"⚠ Could not load customers — {_cust_err}")
+    _customers = (_cust_data or {}).get("items", [])
+    _cust_options = {c["id"]: c["name"] for c in _customers}
+    _add_cust_ids = [""] + list(_cust_options.keys())
+    _add_cust_labels = ["— Unassigned —"] + list(_cust_options.values())
+
+    with st.form("add_device_form"):
+        af1, af2 = st.columns(2)
+        with af1:
+            add_hostname = st.text_input("Hostname / Name *", placeholder="e.g. Office Printer")
+            add_ip = st.text_input("IP address", placeholder="e.g. 192.168.1.50")
+            add_mac = st.text_input("MAC address", placeholder="e.g. AA:BB:CC:DD:EE:FF")
+        with af2:
+            add_platform = st.selectbox(
+                "Platform", ["unknown", "windows", "mac", "linux", "android", "ios"],
+            )
+            add_dtype = st.selectbox(
+                "Device type", ["unknown", "desktop", "laptop", "mobile", "server"],
+            )
+            add_vendor = st.text_input("Vendor", placeholder="e.g. HP, Netgear")
+            add_cust_idx = st.selectbox(
+                "Assign to Customer", range(len(_add_cust_ids)),
+                format_func=lambda x: _add_cust_labels[x],
+            )
+        add_submitted = st.form_submit_button("Add Device", width='stretch')
+
+    if add_submitted:
+        if not add_hostname.strip():
+            st.error("Hostname / name is required.")
+        else:
+            _, add_err = client.create_device({
+                "hostname": add_hostname.strip(),
+                "ip_address": add_ip.strip() or None,
+                "mac_address": add_mac.strip() or None,
+                "platform": add_platform,
+                "device_type": add_dtype,
+                "vendor": add_vendor.strip() or None,
+                "customer_id": _add_cust_ids[add_cust_idx] or None,
+            })
+            if add_err:
+                st.error(f"Failed to add device: {add_err}")
+            else:
+                st.success(f"Device '{add_hostname.strip()}' added.")
+                st.rerun()
+
 _ai_devs = data.get("items", []) if data else []
 _ai_online = sum(1 for _d in _ai_devs if _d.get("status") == "online")
 render_ai_assistant("Devices", {

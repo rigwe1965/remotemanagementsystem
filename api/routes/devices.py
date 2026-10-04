@@ -6,11 +6,12 @@ from sqlalchemy import func
 from extensions import db, limiter
 from models.device import Device, DeviceMetrics
 from models.user import User
+from models.customer import Customer
 from utils.validation import validate_body
 from utils.cache import cache_get_raw, cache_set_raw, cache_delete_pattern
 from utils.auth_decorators import require_role as _require_role
 from utils.scope import require_customer_scope
-from schemas.devices import DeviceUpdateSchema, QueueTaskSchema, DeployPatchesSchema
+from schemas.devices import DeviceCreateSchema, DeviceUpdateSchema, QueueTaskSchema, DeployPatchesSchema
 
 devices_bp = Blueprint("devices", __name__)
 
@@ -108,6 +109,52 @@ def list_devices():
     raw_json = json.dumps(result, default=str)
     cache_set_raw(_ck, raw_json, 30)
     return Response(raw_json, mimetype="application/json")
+
+
+@devices_bp.route("/", methods=["POST"])
+@jwt_required()
+@validate_body(DeviceCreateSchema)
+def create_device():
+    """Manually register a device that can't run the agent (printer, NAS, router, etc.)."""
+    err = _require_role("admin", "technician")
+    if err:
+        return err
+    data = request.get_json(silent=True) or {}
+    hostname = data["hostname"].strip()
+    ip_address = (data.get("ip_address") or "").strip() or None
+    mac_address = (data.get("mac_address") or "").strip() or None
+
+    customer_id = data.get("customer_id") or None
+    if customer_id and not db.session.get(Customer, customer_id):
+        return jsonify({"error": "Customer not found"}), 404
+
+    existing = None
+    if mac_address:
+        existing = Device.query.filter_by(mac_address=mac_address).first()
+    if not existing and ip_address:
+        existing = Device.query.filter_by(ip_address=ip_address).first()
+    if existing:
+        return jsonify({
+            "error": f"A device already exists with that MAC/IP address ('{existing.hostname}')"
+        }), 409
+
+    device = Device(
+        hostname=hostname,
+        display_name=hostname,
+        platform=data.get("platform", "unknown"),
+        device_type=data.get("device_type", "unknown"),
+        ip_address=ip_address,
+        mac_address=mac_address,
+        vendor=data.get("vendor") or None,
+        customer_id=customer_id,
+        is_agentless=True,
+        status="unknown",
+        is_online=False,
+    )
+    db.session.add(device)
+    db.session.commit()
+    cache_delete_pattern("rmm:devices:list:*")
+    return jsonify(device.to_dict()), 201
 
 
 @devices_bp.route("/platform_counts", methods=["GET"])

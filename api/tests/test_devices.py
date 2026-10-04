@@ -145,6 +145,83 @@ class TestDeviceGetUpdate:
             _cleanup(app, [], cust.id, uid)
 
 
+class TestDeviceCreate:
+    def test_create_device_requires_auth(self, client):
+        r = client.post("/api/devices/", json={"hostname": "x"}, content_type="application/json")
+        assert r.status_code == 401
+
+    def test_create_device_requires_technician_or_admin(self, app, client):
+        uid, email, pw = create_user(app, role="viewer")
+        try:
+            tok = login(client, email, pw).get_json()["access_token"]
+            r = client.post(
+                "/api/devices/", json={"hostname": "x"},
+                headers=auth_headers(tok), content_type="application/json",
+            )
+            assert r.status_code == 403
+        finally:
+            delete_user(app, uid)
+
+    def test_create_device_minimal(self, app, client):
+        uid, email, pw = create_user(app, role="admin")
+        hostname = f"printer-{uuid.uuid4().hex[:8]}"
+        dev_id = None
+        try:
+            tok = login(client, email, pw).get_json()["access_token"]
+            r = client.post(
+                "/api/devices/", json={"hostname": hostname},
+                headers=auth_headers(tok), content_type="application/json",
+            )
+            assert r.status_code == 201
+            body = r.get_json()
+            dev_id = body["id"]
+            assert body["hostname"] == hostname
+            assert body["is_agentless"] is True
+            assert body["platform"] == "unknown"
+        finally:
+            _cleanup(app, [dev_id] if dev_id else None, user_id=uid)
+
+    def test_create_device_requires_hostname(self, app, client):
+        uid, email, pw = create_user(app, role="admin")
+        try:
+            tok = login(client, email, pw).get_json()["access_token"]
+            r = client.post(
+                "/api/devices/", json={},
+                headers=auth_headers(tok), content_type="application/json",
+            )
+            assert r.status_code == 400
+        finally:
+            delete_user(app, uid)
+
+    def test_create_device_duplicate_ip_rejected(self, app, client):
+        uid, email, pw = create_user(app, role="admin")
+        cust = _make_customer(app)
+        dev = _make_device(app, cust.id)
+        try:
+            tok = login(client, email, pw).get_json()["access_token"]
+            r = client.post(
+                "/api/devices/",
+                json={"hostname": "dup", "ip_address": dev.ip_address},
+                headers=auth_headers(tok), content_type="application/json",
+            )
+            assert r.status_code == 409
+        finally:
+            _cleanup(app, [dev.id], cust.id, uid)
+
+    def test_create_device_unknown_customer_404(self, app, client):
+        uid, email, pw = create_user(app, role="admin")
+        try:
+            tok = login(client, email, pw).get_json()["access_token"]
+            r = client.post(
+                "/api/devices/",
+                json={"hostname": "x", "customer_id": str(uuid.uuid4())},
+                headers=auth_headers(tok), content_type="application/json",
+            )
+            assert r.status_code == 404
+        finally:
+            delete_user(app, uid)
+
+
 class TestDeviceMetrics:
     def test_metrics_empty_for_new_device(self, app, client):
         uid, email, pw = create_user(app, role="technician")

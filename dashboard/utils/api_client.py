@@ -264,6 +264,9 @@ class RMMClient:
         params = {"page": page, "per_page": per_page, **filters}
         return self._get("/api/devices/", params=params)
 
+    def create_device(self, data: dict):
+        return self._post("/api/devices/", data)
+
     def get_device(self, device_id: str):
         return self._get(f"/api/devices/{device_id}")
 
