@@ -140,11 +140,11 @@ with tab3:
         f'<div><div style="font-weight:600;color:#1A1A1A;font-size:0.95rem">Patch Policies</div>'
         f'<div style="color:#6B7B6B;font-size:0.83rem;margin-top:2px">Configure granular patch approval policies, maintenance windows, and exclusions via Automation Profiles.</div>'
         f'</div></div>'
-        f'<div style="margin-top:1rem">'
-        f'<a href="#" style="color:{BRAND["primary"]};font-size:0.85rem;font-weight:600;text-decoration:none">Go to Automation Profiles →</a>'
-        f'</div></div>',
+        f'</div>',
         unsafe_allow_html=True
     )
+    if st.button("Go to Automation Profiles →", key="goto_automation_profiles"):
+        st.switch_page("pages/11_Automation.py")
     st.info("Configure patch policies via Automation Profiles")
 
 render_ai_assistant("OS Patches", {"context": "navigation_only"})
