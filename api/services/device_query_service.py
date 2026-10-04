@@ -39,6 +39,7 @@ def list_devices_for_assistant(actor_role: str, actor_customer_id: str, *,
     if status:
         query = query.filter_by(status=status)
     if platform:
+        platform = "mac" if platform.lower() in ("macos", "darwin") else platform.lower()
         query = query.filter_by(platform=platform)
     if q:
         query = query.filter(Device.hostname.ilike(f"%{q}%"))

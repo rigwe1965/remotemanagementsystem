@@ -158,7 +158,7 @@ OPENAPI_SPEC = {
                             "hostname": {"type": "string"},
                             "mac_address": {"type": "string"},
                             "serial_number": {"type": "string"},
-                            "platform": {"type": "string", "enum": ["windows", "linux", "macos", "android", "ios", "unknown"]},
+                            "platform": {"type": "string", "enum": ["windows", "linux", "mac", "android", "ios", "unknown"]},
                             "os_name": {"type": "string"},
                             "os_version": {"type": "string"},
                             "cpu_model": {"type": "string"},

@@ -58,6 +58,29 @@ class TestAgentRegister:
         assert "device_id" in body
         assert "agent_token" in body
 
+    @pytest.mark.parametrize("sent", ["mac", "macos"])
+    def test_register_macos_agent_stores_mac(self, app, client, customer, sent):
+        """The agent sends "mac"; "macos" is also accepted. Both store "mac"."""
+        r = _register(client, platform=sent, mac_address=f"AA:BB:CC:{uuid.uuid4().hex[:2]}:00:01")
+        assert r.status_code == 201
+        from extensions import db
+        from models.device import Device
+        with app.app_context():
+            dev = db.session.get(Device, r.get_json()["device_id"])
+            assert dev.platform == "mac"
+
+    def test_reregister_normalizes_platform(self, app, client, customer):
+        """Re-registering an existing device with "macos" corrects its stored platform."""
+        mac = f"AA:BB:CC:{uuid.uuid4().hex[:2]}:00:02"
+        r1 = _register(client, platform="linux", mac_address=mac)
+        assert r1.status_code == 201
+        r2 = _register(client, platform="macos", mac_address=mac)
+        assert r2.status_code in (200, 201)
+        from extensions import db
+        from models.device import Device
+        with app.app_context():
+            assert db.session.get(Device, r2.get_json()["device_id"]).platform == "mac"
+
     def test_register_missing_hostname(self, client, customer):
         r = _register(client, hostname="")
         assert r.status_code == 400

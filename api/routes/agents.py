@@ -78,6 +78,10 @@ def register():
         f"{hostname}|{mac_address}|{serial}".encode("utf-8")
     ).hexdigest()
 
+    platform = data.get("platform", "windows")
+    if platform == "macos":
+        platform = "mac"
+
     # Check if device already registered by fingerprint
     existing = Device.query.filter_by(hardware_fingerprint=fingerprint).first()
     if existing:
@@ -100,7 +104,7 @@ def register():
         device = Device(
             customer_id=customer.id,
             hostname=hostname,
-            platform=data.get("platform", "windows"),
+            platform=platform,
             hardware_fingerprint=fingerprint,
         )
         db.session.add(device)
@@ -108,6 +112,7 @@ def register():
 
     # Update device info from registration payload
     device.hostname = hostname
+    device.platform = platform
     device.os_name = data.get("os_name")
     device.os_version = data.get("os_version")
     device.os_build = data.get("os_build")

@@ -103,7 +103,7 @@ TOOL_DEFINITIONS = [
             "properties": {
                 "is_online": {"type": "boolean", "description": "Filter by online status"},
                 "status": {"type": "string", "enum": ["healthy", "warning", "critical"], "description": "Filter by device health status"},
-                "platform": {"type": "string", "description": "Filter by OS platform, e.g. windows/macos/linux/android/ios"},
+                "platform": {"type": "string", "description": "Filter by OS platform, e.g. windows/mac/linux/android/ios"},
                 "q": {"type": "string", "description": "Search by hostname substring"},
             },
         },

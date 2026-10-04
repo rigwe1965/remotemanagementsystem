@@ -1,6 +1,8 @@
 from marshmallow import Schema, fields, validate, EXCLUDE
 
-_PLATFORMS = ("windows", "linux", "macos", "android", "ios", "unknown")
+# "mac" is what the agent sends and what Device.platform stores; "macos" is also
+# accepted and normalized to "mac" at registration (see routes/agents.py).
+_PLATFORMS = ("windows", "linux", "mac", "macos", "android", "ios", "unknown")
 
 
 class AgentRegisterSchema(Schema):

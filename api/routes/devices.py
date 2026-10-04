@@ -130,13 +130,13 @@ def create_device():
 
     existing = None
     if mac_address:
-        existing = Device.query.filter_by(mac_address=mac_address).first()
+        existing = Device.query.filter(
+            func.lower(Device.mac_address) == mac_address.lower()
+        ).first()
     if not existing and ip_address:
         existing = Device.query.filter_by(ip_address=ip_address).first()
     if existing:
-        return jsonify({
-            "error": f"A device already exists with that MAC/IP address ('{existing.hostname}')"
-        }), 409
+        return jsonify({"error": "A device already exists with that MAC/IP address"}), 409
 
     device = Device(
         hostname=hostname,

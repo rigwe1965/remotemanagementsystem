@@ -208,6 +208,27 @@ class TestDeviceCreate:
         finally:
             _cleanup(app, [dev.id], cust.id, uid)
 
+    def test_create_device_duplicate_mac_case_insensitive(self, app, client):
+        from extensions import db
+        uid, email, pw = create_user(app, role="admin")
+        cust = _make_customer(app)
+        dev = _make_device(app, cust.id)
+        try:
+            with app.app_context():
+                d = db.session.get(type(dev), dev.id)
+                d.mac_address = "aa:bb:cc:dd:ee:01"
+                db.session.commit()
+            tok = login(client, email, pw).get_json()["access_token"]
+            r = client.post(
+                "/api/devices/",
+                json={"hostname": "dup-mac", "mac_address": "AA:BB:CC:DD:EE:01"},
+                headers=auth_headers(tok), content_type="application/json",
+            )
+            assert r.status_code == 409
+            assert dev.hostname not in r.get_json()["error"]
+        finally:
+            _cleanup(app, [dev.id], cust.id, uid)
+
     def test_create_device_unknown_customer_404(self, app, client):
         uid, email, pw = create_user(app, role="admin")
         try:
