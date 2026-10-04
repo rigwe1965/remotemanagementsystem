@@ -11,24 +11,6 @@ import tasks._app_singleton as app_singleton
 import tasks.anomaly_tasks as anomaly_tasks
 from conftest import delete_user
 
-# tasks/anomaly_tasks.py:154 (`recent_rows = [r for r in rows if r.collected_at
-# >= cutoff_1h]`) compares a DB-read DeviceMetrics.collected_at against a fresh
-# datetime.now(timezone.utc). Under SQLite (this suite's DB), DateTime(timezone=True)
-# columns round-trip as naive datetimes (SQLite has no native tz-aware timestamp
-# type), so the comparison raises `TypeError: can't compare offset-naive and
-# offset-aware datetimes` for any device with enough history to reach that line.
-# Verified real — reproduced directly, not a test-writing mistake. Would not
-# reproduce against Postgres (production), which preserves tz-awareness. Not
-# fixed here (out of this fork's scope — see the accompanying report); the fix
-# would be normalizing with `r.collected_at.replace(tzinfo=timezone.utc)` (or
-# equivalent) before the comparison at line 154 (and the identical shape at 117-118).
-_SQLITE_NAIVE_DATETIME_BUG = (
-    "anomaly_tasks.py compares DB-read collected_at against datetime.now(timezone.utc); "
-    "SQLite returns naive datetimes for DateTime(timezone=True) columns, causing "
-    "TypeError: can't compare offset-naive and offset-aware datetimes. Real bug, "
-    "not reproducible against Postgres. See test file docstring/comment for detail."
-)
-
 
 def _make_customer(app):
     from extensions import db
@@ -96,7 +78,6 @@ def _run_detect(app):
 
 
 class TestDetectMetricAnomalies:
-    @pytest.mark.xfail(reason=_SQLITE_NAIVE_DATETIME_BUG, strict=True)
     def test_fires_alert_on_real_spike(self, app):
         cust = _make_customer(app)
         dev = _make_device(app, cust.id)
@@ -113,7 +94,6 @@ class TestDetectMetricAnomalies:
         finally:
             _cleanup(app, device_ids=[dev.id], customer_id=cust.id)
 
-    @pytest.mark.xfail(reason=_SQLITE_NAIVE_DATETIME_BUG, strict=True)
     def test_no_alert_when_metrics_are_stable(self, app):
         cust = _make_customer(app)
         dev = _make_device(app, cust.id)
@@ -137,7 +117,6 @@ class TestDetectMetricAnomalies:
         finally:
             _cleanup(app, device_ids=[dev.id], customer_id=cust.id)
 
-    @pytest.mark.xfail(reason=_SQLITE_NAIVE_DATETIME_BUG, strict=True)
     def test_second_spike_updates_existing_alert_instead_of_duplicating(self, app):
         """_fire_anomaly_alert dedups on the message-prefix match (Alert has no
         rule_id for anomaly-detected alerts) — two consecutive spiky runs must

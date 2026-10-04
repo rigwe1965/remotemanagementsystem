@@ -24,6 +24,11 @@ BASELINE_SAMPLES = 20   # samples used for mean/stdev baseline
 from tasks._app_singleton import get_app as _get_app
 
 
+
+def _as_utc(dt):
+    """SQLite returns naive datetimes for DateTime(timezone=True); treat them as UTC."""
+    return dt.replace(tzinfo=timezone.utc) if dt.tzinfo is None else dt
+
 def _zscore_anomalies(values: list[float]) -> list[bool]:
     """Return bool flags: True where z-score > Z_THRESHOLD."""
     if len(values) < MIN_SAMPLES:
@@ -151,7 +156,7 @@ def detect_metric_anomalies(self):
                 flags = _zscore_anomalies(values)
 
                 # Focus on recent 1h window
-                recent_rows = [r for r in rows if r.collected_at >= cutoff_1h]
+                recent_rows = [r for r in rows if _as_utc(r.collected_at) >= cutoff_1h]
                 recent_values = [
                     getattr(r, field) for r in recent_rows
                     if getattr(r, field) is not None
