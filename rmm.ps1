@@ -19,6 +19,10 @@ function Stop-All {
     Get-CimInstance Win32_Process -Filter "Name like 'python%'" |
         Where-Object { $_.CommandLine -match 'celery|rmm_agent\.py' } |
         ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
+    # Close the leftover "RMM <name>" host windows (they use -NoExit, so they outlive their service)
+    Get-CimInstance Win32_Process -Filter "Name = 'powershell.exe'" |
+        Where-Object { $_.CommandLine -match "WindowTitle='RMM " } |
+        ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
     Write-Host 'Stopped.'
 }
 
@@ -33,20 +37,22 @@ function Start-All {
         if (-not (Test-Port $p)) { Write-Warning "Nothing listening on $p (Redis=6379 / Postgres=5432). Start that service first (elevated)." }
     }
     Start-Svc 'API'       'api'       '.\venv\Scripts\python.exe app.py'
-    Start-Svc 'Worker'    'api'       '.\venv\Scripts\celery.exe -A tasks.celery_app worker --pool=solo -l info'
-    Start-Svc 'Beat'      'api'       '.\venv\Scripts\celery.exe -A tasks.celery_app beat -l info --pidfile=celerybeat.pid'
-    Start-Svc 'Dashboard' 'dashboard' '.\venv\Scripts\streamlit.exe run app.py'
+    # `python -m ...` instead of the venv's *.exe launchers: Windows Application Control blocks
+    # freshly generated (unsigned) launcher exes, e.g. after a pip reinstall.
+    Start-Svc 'Worker'    'api'       '.\venv\Scripts\python.exe -m celery -A tasks.celery_app worker --pool=solo -l info'
+    Start-Svc 'Beat'      'api'       '.\venv\Scripts\python.exe -m celery -A tasks.celery_app beat -l info --pidfile=celerybeat.pid'
+    Start-Svc 'Dashboard' 'dashboard' '.\venv\Scripts\python.exe -m streamlit run app.py'
     if ($Frontend) { Start-Svc 'React' 'frontend' 'npm run dev' }
     if ($Agent)    { Start-Svc 'Agent' 'agent'    '.\venv\Scripts\python.exe rmm_agent.py' }
 
     Write-Host 'Waiting for API health...'
-    for ($i = 0; $i -lt 30; $i++) {
+    for ($i = 0; $i -lt 60; $i++) {
         try {
             $r = Invoke-WebRequest http://localhost:5000/api/health -UseBasicParsing -TimeoutSec 2
             Write-Host "API health: HTTP $($r.StatusCode)"; return
         } catch { Start-Sleep 1 }
     }
-    Write-Warning 'API did not answer /api/health within 30s - check the "RMM API" window.'
+    Write-Warning 'API did not answer /api/health within 60s - check the "RMM API" window.'
 }
 
 function Show-Status {
