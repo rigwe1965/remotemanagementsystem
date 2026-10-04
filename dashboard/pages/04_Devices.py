@@ -24,7 +24,7 @@ All registered endpoints — agent-managed and agentless (WiFi discovered)</p>
 """, unsafe_allow_html=True)
 
 PLATFORM_ICON = {
-    "windows": "Win", "mac": "Mac", "linux": "Lin",
+    "windows": "Win", "mac": "macOS", "linux": "Lin",
     "android": "And", "ios": "iOS", "unknown": "—", "agentless": "—",
 }
 
@@ -284,7 +284,10 @@ def _render_agentless_row(device: dict, tab_key: str = ""):
                 with ef1:
                     new_hostname = st.text_input("Friendly name / hostname", value=device.get("hostname") or device.get("ip_address", ""))
                 with ef2:
-                    new_platform = st.selectbox("Platform", PLATFORMS, index=p_idx)
+                    new_platform = st.selectbox(
+                        "Platform", PLATFORMS, index=p_idx,
+                        format_func=lambda p: "macOS" if p == "mac" else p,
+                    )
                 with ef3:
                     new_dtype = st.selectbox("Device type", DEVICE_TYPES, index=d_idx)
                 if st.form_submit_button("Save device info", width='stretch'):
@@ -662,6 +665,7 @@ with st.expander("+ Add Device"):
         with af2:
             add_platform = st.selectbox(
                 "Platform", ["unknown", "windows", "mac", "linux", "android", "ios"],
+                format_func=lambda p: "macOS" if p == "mac" else p,
             )
             add_dtype = st.selectbox(
                 "Device type", ["unknown", "desktop", "laptop", "mobile", "server"],
