@@ -2,6 +2,7 @@
 import hashlib
 import logging
 import os
+from datetime import datetime, timezone
 
 from flask import Blueprint, request, jsonify, Response, stream_with_context
 from flask_jwt_extended import jwt_required
@@ -36,7 +37,15 @@ def _any_valid_agent_token() -> bool:
     token = auth[7:]
     token_hash = hashlib.sha256(token.encode("utf-8")).hexdigest()
     at = AgentToken.query.filter_by(token_hash=token_hash, is_revoked=False).first()
-    return at is not None
+    if at is None:
+        return False
+    if at.expires_at:
+        exp = at.expires_at
+        if exp.tzinfo is None:  # SQLite returns naive datetimes; treat as UTC
+            exp = exp.replace(tzinfo=timezone.utc)
+        if exp <= datetime.now(timezone.utc):
+            return False
+    return True
 
 
 def _ver_tuple(v: str) -> tuple:
