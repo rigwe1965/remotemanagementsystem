@@ -68,6 +68,9 @@ def create_script():
 @scripts_bp.route("/<script_id>", methods=["GET"])
 @jwt_required()
 def get_script(script_id):
+    err = _require_role("admin", "technician", "viewer")
+    if err:
+        return err
     script = db.get_or_404(Script, script_id)
     return jsonify(script.to_dict(include_content=True)), 200
 
@@ -125,6 +128,9 @@ def run_script(script_id):
 @scripts_bp.route("/runs", methods=["GET"])
 @jwt_required()
 def list_runs():
+    err = _require_role("admin", "technician", "viewer")
+    if err:
+        return err
     device_id = request.args.get("device_id")
     script_id = request.args.get("script_id")
     status = request.args.get("status")
@@ -143,5 +149,8 @@ def list_runs():
 @scripts_bp.route("/runs/<run_id>", methods=["GET"])
 @jwt_required()
 def get_run(run_id):
+    err = _require_role("admin", "technician", "viewer")
+    if err:
+        return err
     run = db.get_or_404(ScriptRun, run_id)
     return jsonify(run.to_dict()), 200

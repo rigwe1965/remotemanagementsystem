@@ -4,7 +4,7 @@ import logging
 import time
 
 from flask import Blueprint, Response, request, jsonify, stream_with_context, current_app
-from flask_jwt_extended import jwt_required, decode_token
+from flask_jwt_extended import jwt_required, decode_token, get_jwt
 from jwt.exceptions import ExpiredSignatureError
 
 logger = logging.getLogger(__name__)
@@ -50,7 +50,7 @@ def stream():
         or (claims.get("sub_claims") or {}).get("role")
         or ""
     )
-    if role not in ("admin", "technician", "viewer", "superadmin", "client"):
+    if role not in ("admin", "technician", "viewer", "superadmin"):
         return jsonify({"error": "Forbidden"}), 403
 
     def _generate():
@@ -103,7 +103,10 @@ def stream():
 @events_bp.route("/recent", methods=["GET"])
 @jwt_required()
 def recent_events():
-    """Return last N events for dashboard polling fallback."""
+    """Return last N events for dashboard polling fallback. Staff only: the event bus is
+    not tenant-partitioned, so client-role callers must not see it."""
+    if get_jwt().get("role") not in ("admin", "technician", "viewer", "superadmin"):
+        return jsonify({"error": "Insufficient permissions"}), 403
     limit = min(request.args.get("limit", 20, type=int), 100)
     from utils.events import get_recent_events
     return jsonify(get_recent_events(limit)), 200

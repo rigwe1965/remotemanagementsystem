@@ -12,6 +12,9 @@ patches_bp = Blueprint("patches", __name__)
 @patches_bp.route("/", methods=["GET"])
 @jwt_required()
 def list_patches():
+    err = _require_role("admin", "technician", "viewer")
+    if err:
+        return err
     device_id = request.args.get("device_id")
     status = request.args.get("status")
     patch_type = request.args.get("type")
@@ -30,6 +33,9 @@ def list_patches():
 @patches_bp.route("/pending", methods=["GET"])
 @jwt_required()
 def pending_patches():
+    err = _require_role("admin", "technician", "viewer")
+    if err:
+        return err
     patches = PatchRecord.query.filter_by(status="pending").order_by(
         PatchRecord.created_at.desc()
     ).limit(200).all()
@@ -61,6 +67,9 @@ def approve_patches():
 @patches_bp.route("/summary", methods=["GET"])
 @jwt_required()
 def patch_summary():
+    err = _require_role("admin", "technician", "viewer")
+    if err:
+        return err
     from sqlalchemy import func
     rows = db.session.query(
         PatchRecord.status, func.count(PatchRecord.id)
@@ -83,6 +92,9 @@ def patch_summary():
 @patches_bp.route("/policies", methods=["GET"])
 @jwt_required()
 def list_policies():
+    err = _require_role("admin", "technician", "viewer")
+    if err:
+        return err
     policies = PatchPolicy.query.all()
     return jsonify([p.to_dict() for p in policies]), 200
 

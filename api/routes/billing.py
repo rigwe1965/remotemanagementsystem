@@ -19,6 +19,7 @@ from utils.validation import validate_body
 from utils.usage_tracker import record_event
 from schemas.billing import GenerateInvoiceSchema, InvoiceStatusSchema
 from utils.auth_decorators import require_role as _require_role
+from utils.scope import require_customer_scope
 
 logger = logging.getLogger(__name__)
 billing_bp = Blueprint("billing", __name__)
@@ -130,6 +131,9 @@ def generate_invoice():
 @jwt_required()
 def get_invoice(invoice_id):
     invoice = db.get_or_404(Invoice, invoice_id)
+    err = require_customer_scope(invoice.customer_id)
+    if err:
+        return err
     return jsonify(invoice.to_dict()), 200
 
 
@@ -137,6 +141,9 @@ def get_invoice(invoice_id):
 @jwt_required()
 def get_invoice_pdf(invoice_id):
     invoice = db.get_or_404(Invoice, invoice_id)
+    err = require_customer_scope(invoice.customer_id)
+    if err:
+        return err
     customer = db.get_or_404(Customer, invoice.customer_id)
 
     from models.org_settings import OrgSettings
