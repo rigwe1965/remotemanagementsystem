@@ -6,6 +6,7 @@ from models.audit import AuditLog
 from utils.validation import validate_body
 from schemas.customers import CustomerCreateSchema, CustomerUpdateSchema, DeviceGroupCreateSchema
 from utils.auth_decorators import require_role as _require_role
+from utils.scope import require_customer_scope
 from utils.pagination import paginated_response
 import uuid
 import re
@@ -21,6 +22,9 @@ def _slugify(name: str) -> str:
 @customers_bp.route("/", methods=["GET"])
 @jwt_required()
 def list_customers():
+    err = _require_role("admin", "technician", "viewer")
+    if err:
+        return err
     q = request.args.get("q", "")
 
     query = Customer.query.filter_by(is_active=True)
@@ -72,6 +76,9 @@ def create_customer():
 @jwt_required()
 def get_customer(customer_id):
     customer = db.get_or_404(Customer, customer_id)
+    err = require_customer_scope(customer_id)
+    if err:
+        return err
     return jsonify(customer.to_dict(include_counts=True)), 200
 
 
@@ -107,6 +114,9 @@ def delete_customer(customer_id):
 @jwt_required()
 def customer_devices(customer_id):
     db.get_or_404(Customer, customer_id)
+    err = require_customer_scope(customer_id)
+    if err:
+        return err
     from models.device import Device, DeviceMetrics
     from sqlalchemy import func
     devices = Device.query.filter_by(customer_id=customer_id).all()

@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify
+from utils.auth_decorators import require_role as _require_role
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 from extensions import db
 from models.report import Report
@@ -17,6 +18,9 @@ def _is_admin_or_above() -> bool:
 @reports_bp.route("/templates", methods=["GET"])
 @jwt_required()
 def list_templates():
+    err = _require_role("admin", "technician", "viewer")
+    if err:
+        return err
     templates = [
         {"type": "patch_summary", "name": "Patch Summary Report"},
         {"type": "device_health", "name": "Device Health Report"},
@@ -32,6 +36,9 @@ def list_templates():
 @reports_bp.route("/", methods=["GET"])
 @jwt_required()
 def list_reports():
+    err = _require_role("admin", "technician", "viewer")
+    if err:
+        return err
     q = Report.query
     if not _is_admin_or_above():
         q = q.filter(Report.template_type.notin_(_USAGE_RESTRICTED_TEMPLATES))
@@ -42,6 +49,9 @@ def list_reports():
 @reports_bp.route("/generate", methods=["POST"])
 @jwt_required()
 def generate_report():
+    err = _require_role("admin", "technician", "viewer")
+    if err:
+        return err
     data = request.get_json(silent=True) or {}
     template_type = data.get("template_type")
     if not template_type:
@@ -67,6 +77,9 @@ def generate_report():
 @reports_bp.route("/<report_id>", methods=["GET"])
 @jwt_required()
 def get_report(report_id):
+    err = _require_role("admin", "technician", "viewer")
+    if err:
+        return err
     report = db.get_or_404(Report, report_id)
     if report.template_type in _USAGE_RESTRICTED_TEMPLATES and not _is_admin_or_above():
         return jsonify({"error": "Administrator access required"}), 403

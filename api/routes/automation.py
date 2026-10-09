@@ -58,6 +58,9 @@ def create_profile():
 @automation_bp.route("/profiles/<profile_id>", methods=["GET"])
 @jwt_required()
 def get_profile(profile_id):
+    err = _require_role("admin", "technician", "viewer")
+    if err:
+        return err
     profile = db.get_or_404(AutomationProfile, profile_id)
     return jsonify(profile.to_dict()), 200
 
@@ -125,6 +128,9 @@ def run_profile_now(profile_id):
 @automation_bp.route("/runs", methods=["GET"])
 @jwt_required()
 def list_runs():
+    err = _require_role("admin", "technician", "viewer")
+    if err:
+        return err
     profile_id = request.args.get("profile_id")
 
     query = ScheduledTaskRun.query

@@ -13,6 +13,9 @@ _VALID_PRIORITIES = {"critical", "high", "medium", "low"}
 @sla_bp.route("/", methods=["GET"])
 @jwt_required()
 def list_policies():
+    err = _require_role("admin", "technician", "viewer")
+    if err:
+        return err
     customer_id = request.args.get("customer_id")
     query = SLAPolicy.query
     if customer_id:

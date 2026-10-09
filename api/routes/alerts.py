@@ -59,6 +59,9 @@ def create_rule():
 @alerts_bp.route("/alert_rules/<rule_id>", methods=["GET"])
 @jwt_required()
 def get_rule(rule_id):
+    err = _require_role("admin", "technician", "viewer")
+    if err:
+        return err
     rule = db.get_or_404(AlertRule, rule_id)
     return jsonify(rule.to_dict()), 200
 
@@ -97,6 +100,9 @@ def delete_rule(rule_id):
 @alerts_bp.route("/alerts", methods=["GET"])
 @jwt_required()
 def list_alerts():
+    err = _require_role("admin", "technician", "viewer")
+    if err:
+        return err
     page = request.args.get("page", 1, type=int)
     per_page = min(request.args.get("per_page", 50, type=int), 200)
     status = request.args.get("status")
