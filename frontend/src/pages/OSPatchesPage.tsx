@@ -115,15 +115,15 @@ export default function OSPatchesPage() {
       {/* Summary cards */}
       {summary && (
         <div className="grid grid-cols-3 gap-4">
-          <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
+          <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-xs">
             <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Pending</p>
             <p className="text-2xl font-bold text-amber-600 mt-1">{summary.total_pending}</p>
           </div>
-          <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
+          <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-xs">
             <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Installed</p>
             <p className="text-2xl font-bold text-green-600 mt-1">{summary.total_installed}</p>
           </div>
-          <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
+          <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-xs">
             <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Failed</p>
             <p className="text-2xl font-bold text-red-600 mt-1">{summary.total_failed}</p>
           </div>
@@ -138,7 +138,7 @@ export default function OSPatchesPage() {
               key={s || 'all'}
               onClick={() => { setStatusFilter(s); setPage(1); setSelected(new Set()); }}
               className={`px-3 py-1.5 text-xs font-semibold rounded-md transition ${
-                statusFilter === s ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                statusFilter === s ? 'bg-white text-gray-800 shadow-xs' : 'text-gray-500 hover:text-gray-700'
               }`}
             >
               {s || 'All'}
@@ -157,7 +157,7 @@ export default function OSPatchesPage() {
         )}
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-xl border border-gray-100 shadow-xs overflow-hidden">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-100 bg-gray-50">
@@ -166,7 +166,7 @@ export default function OSPatchesPage() {
                   type="checkbox"
                   checked={patches.length > 0 && selected.size === patches.length}
                   onChange={toggleAll}
-                  className="rounded border-gray-300 text-brand-500 focus:ring-brand-400"
+                  className="rounded-sm border-gray-300 text-brand-500 focus:ring-brand-400"
                 />
               </th>
               <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wide px-4 py-3">Title</th>
@@ -183,7 +183,7 @@ export default function OSPatchesPage() {
                   <tr key={i}>
                     {Array.from({ length: 7 }).map((_, j) => (
                       <td key={j} className="px-4 py-3">
-                        <div className="h-4 bg-gray-100 rounded animate-pulse" />
+                        <div className="h-4 bg-gray-100 rounded-sm animate-pulse" />
                       </td>
                     ))}
                   </tr>
@@ -195,7 +195,7 @@ export default function OSPatchesPage() {
                         type="checkbox"
                         checked={selected.has(p.id)}
                         onChange={() => toggleSelect(p.id)}
-                        className="rounded border-gray-300 text-brand-500 focus:ring-brand-400"
+                        className="rounded-sm border-gray-300 text-brand-500 focus:ring-brand-400"
                       />
                     </td>
                     <td className="px-4 py-3 font-medium text-gray-800 max-w-xs truncate">{p.title}</td>

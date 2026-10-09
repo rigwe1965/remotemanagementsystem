@@ -69,7 +69,7 @@ export default function MaintenancePage() {
         <select
           value={selectedDevice}
           onChange={(e) => { setSelectedDevice(e.target.value); setMsgs({}); }}
-          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-400 bg-white"
+          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-brand-400 bg-white"
         >
           <option value="">Select an online device…</option>
           {onlineDevices.map((d) => (
@@ -92,7 +92,7 @@ export default function MaintenancePage() {
         <>
           {/* Device info */}
           {selected && (
-            <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
+            <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-xs">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-2.5 h-2.5 rounded-full bg-green-500 shadow-[0_0_6px_#22c55e88]" />
                 <span className="font-bold text-gray-900">{selected.hostname}</span>
@@ -116,7 +116,7 @@ export default function MaintenancePage() {
               const Icon = action.icon;
               const msg = msgs[action.key];
               return (
-                <div key={action.key} className={`bg-white border rounded-xl p-4 shadow-sm ${action.danger ? 'border-red-100' : 'border-gray-100'}`}>
+                <div key={action.key} className={`bg-white border rounded-xl p-4 shadow-xs ${action.danger ? 'border-red-100' : 'border-gray-100'}`}>
                   <div className="flex items-start gap-3">
                     <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${action.danger ? 'bg-red-50' : 'bg-gray-50'}`}>
                       <Icon size={16} className={action.color} />

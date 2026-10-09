@@ -199,7 +199,7 @@ export default function AiAssistant() {
                   m.role === 'user' ? 'bg-brand-600 text-white' : 'bg-gray-100 text-gray-800'
                 }`}>
                   {m.warning && (
-                    <div className="flex items-center gap-1 text-amber-700 bg-amber-50 rounded px-2 py-1 mb-1 text-[11px] font-medium">
+                    <div className="flex items-center gap-1 text-amber-700 bg-amber-50 rounded-sm px-2 py-1 mb-1 text-[11px] font-medium">
                       <AlertTriangle size={12} /> Verify before executing
                     </div>
                   )}
@@ -269,7 +269,7 @@ export default function AiAssistant() {
               value={input}
               onChange={(e) => setInput(e.target.value.slice(0, 800))}
               placeholder="Ask anything about this page…"
-              className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-300"
+              className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-brand-300"
             />
             <button
               type="submit"

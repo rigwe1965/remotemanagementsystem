@@ -90,7 +90,7 @@ export default function ScriptsPage() {
         {(['library', 'runs'] as const).map((t) => (
           <button key={t} onClick={() => setTab(t)}
             className={`px-4 py-1.5 text-xs font-semibold rounded-md transition capitalize ${
-              tab === t ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+              tab === t ? 'bg-white text-gray-800 shadow-xs' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
             {t === 'library' ? 'Script Library' : 'Run History'}
@@ -105,7 +105,7 @@ export default function ScriptsPage() {
                 <div key={i} className="h-16 bg-white border border-gray-100 rounded-xl animate-pulse" />
               ))
             : (scripts ?? []).map((s) => (
-                <div key={s.id} className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
+                <div key={s.id} className="bg-white border border-gray-100 rounded-xl p-4 shadow-xs">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex items-start gap-3 min-w-0">
                       <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center shrink-0">
@@ -117,7 +117,7 @@ export default function ScriptsPage() {
                           {s.is_builtin && (
                             <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-brand-100 text-brand-600">BUILT-IN</span>
                           )}
-                          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">{s.shell}</span>
+                          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-sm bg-gray-100 text-gray-500">{s.shell}</span>
                         </div>
                         {s.description && <p className="text-xs text-gray-400 mt-0.5 truncate">{s.description}</p>}
                       </div>
@@ -149,7 +149,7 @@ export default function ScriptsPage() {
                                     e.target.checked ? [...prev, d.id] : prev.filter((id) => id !== d.id)
                                   );
                                 }}
-                                className="rounded border-gray-300 text-brand-500 focus:ring-brand-400"
+                                className="rounded-sm border-gray-300 text-brand-500 focus:ring-brand-400"
                               />
                               {d.display_name || d.hostname}
                             </label>
@@ -192,7 +192,7 @@ export default function ScriptsPage() {
                 <div key={i} className="h-14 bg-white border border-gray-100 rounded-xl animate-pulse" />
               ))
             : (runs?.items ?? []).map((r) => (
-                <div key={r.id} className="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden">
+                <div key={r.id} className="bg-white border border-gray-100 rounded-xl shadow-xs overflow-hidden">
                   <div
                     className="flex items-center gap-3 p-4 cursor-pointer hover:bg-gray-50 transition"
                     onClick={() => setExpandedRun(expandedRun === r.id ? null : r.id)}

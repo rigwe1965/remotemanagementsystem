@@ -58,7 +58,7 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-brand-700 to-brand-500 rounded-2xl mb-4 shadow-lg">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-linear-to-br from-brand-700 to-brand-500 rounded-2xl mb-4 shadow-lg">
             <Monitor className="text-brand-300" size={28} />
           </div>
           <h1 className="text-2xl font-bold text-gray-900">RMM System</h1>
@@ -80,7 +80,7 @@ export default function LoginPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="admin@company.com"
-                    className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-transparent transition"
+                    className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:outline-hidden focus:ring-2 focus:ring-brand-400 focus:border-transparent transition"
                   />
                 </div>
                 <div>
@@ -93,7 +93,7 @@ export default function LoginPage() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full px-3 py-2.5 pr-10 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-transparent transition"
+                      className="w-full px-3 py-2.5 pr-10 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:outline-hidden focus:ring-2 focus:ring-brand-400 focus:border-transparent transition"
                     />
                     <button
                       type="button"
@@ -112,7 +112,7 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-2.5 bg-brand-500 hover:bg-brand-600 text-white text-sm font-semibold rounded-lg transition shadow-sm disabled:opacity-60 mt-2"
+                  className="w-full py-2.5 bg-brand-500 hover:bg-brand-600 text-white text-sm font-semibold rounded-lg transition shadow-xs disabled:opacity-60 mt-2"
                 >
                   {loading ? 'Signing in…' : 'Sign In →'}
                 </button>
@@ -133,7 +133,7 @@ export default function LoginPage() {
                   value={mfaCode}
                   onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, ''))}
                   placeholder="123456"
-                  className="w-full px-3 py-2.5 text-sm text-center tracking-widest border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-400 transition"
+                  className="w-full px-3 py-2.5 text-sm text-center tracking-widest border border-gray-200 rounded-lg bg-gray-50 focus:outline-hidden focus:ring-2 focus:ring-brand-400 transition"
                 />
                 {error && (
                   <div className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
@@ -143,7 +143,7 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-2.5 bg-brand-500 hover:bg-brand-600 text-white text-sm font-semibold rounded-lg transition shadow-sm disabled:opacity-60"
+                  className="w-full py-2.5 bg-brand-500 hover:bg-brand-600 text-white text-sm font-semibold rounded-lg transition shadow-xs disabled:opacity-60"
                 >
                   {loading ? 'Verifying…' : 'Verify →'}
                 </button>

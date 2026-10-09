@@ -64,7 +64,7 @@ export default function AlertsPage() {
             key={s || 'all'}
             onClick={() => { setStatusFilter(s); setPage(1); }}
             className={`px-3 py-1.5 text-xs font-semibold rounded-md transition ${
-              statusFilter === s ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+              statusFilter === s ? 'bg-white text-gray-800 shadow-xs' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
             {s || 'All'}
@@ -72,7 +72,7 @@ export default function AlertsPage() {
         ))}
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-xl border border-gray-100 shadow-xs overflow-hidden">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-100 bg-gray-50">
@@ -90,7 +90,7 @@ export default function AlertsPage() {
                   <tr key={i}>
                     {Array.from({ length: 6 }).map((_, j) => (
                       <td key={j} className="px-4 py-3">
-                        <div className="h-4 bg-gray-100 rounded animate-pulse" />
+                        <div className="h-4 bg-gray-100 rounded-sm animate-pulse" />
                       </td>
                     ))}
                   </tr>
@@ -118,7 +118,7 @@ export default function AlertsPage() {
                           onClick={() => acknowledge.mutate(a.id)}
                           disabled={acknowledge.isPending}
                           title="Acknowledge"
-                          className="p-1.5 rounded hover:bg-brand-50 text-gray-400 hover:text-brand-600 transition"
+                          className="p-1.5 rounded-sm hover:bg-brand-50 text-gray-400 hover:text-brand-600 transition"
                         >
                           <CheckCheck size={15} />
                         </button>
