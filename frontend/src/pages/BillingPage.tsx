@@ -79,11 +79,11 @@ export default function BillingPage() {
       {/* Summary strip */}
       {invoices.length > 0 && (
         <div className="grid grid-cols-2 gap-4">
-          <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
+          <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-xs">
             <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Page Total</p>
             <p className="text-2xl font-bold text-gray-800 mt-1">{fmt(totals.total)}</p>
           </div>
-          <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
+          <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-xs">
             <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Paid (this page)</p>
             <p className="text-2xl font-bold text-green-600 mt-1">{fmt(totals.paid)}</p>
           </div>
@@ -97,7 +97,7 @@ export default function BillingPage() {
             key={s || 'all'}
             onClick={() => { setStatusFilter(s); setPage(1); }}
             className={`px-3 py-1.5 text-xs font-semibold rounded-md transition capitalize ${
-              statusFilter === s ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+              statusFilter === s ? 'bg-white text-gray-800 shadow-xs' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
             {s || 'All'}
@@ -105,7 +105,7 @@ export default function BillingPage() {
         ))}
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-xl border border-gray-100 shadow-xs overflow-hidden">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-100 bg-gray-50">
@@ -124,7 +124,7 @@ export default function BillingPage() {
                   <tr key={i}>
                     {Array.from({ length: 7 }).map((_, j) => (
                       <td key={j} className="px-4 py-3">
-                        <div className="h-4 bg-gray-100 rounded animate-pulse" />
+                        <div className="h-4 bg-gray-100 rounded-sm animate-pulse" />
                       </td>
                     ))}
                   </tr>
@@ -152,7 +152,7 @@ export default function BillingPage() {
                             onClick={() => sendInvoice.mutate(inv.id)}
                             disabled={sendInvoice.isPending}
                             title="Send invoice"
-                            className="p-1.5 rounded hover:bg-brand-50 text-gray-400 hover:text-brand-600 transition"
+                            className="p-1.5 rounded-sm hover:bg-brand-50 text-gray-400 hover:text-brand-600 transition"
                           >
                             <Send size={13} />
                           </button>
@@ -163,7 +163,7 @@ export default function BillingPage() {
                               if (confirm('Delete this invoice?')) deleteInvoice.mutate(inv.id);
                             }}
                             title="Delete"
-                            className="p-1.5 rounded hover:bg-red-50 text-gray-400 hover:text-red-500 transition"
+                            className="p-1.5 rounded-sm hover:bg-red-50 text-gray-400 hover:text-red-500 transition"
                           >
                             <Trash2 size={13} />
                           </button>

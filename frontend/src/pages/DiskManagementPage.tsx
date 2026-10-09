@@ -77,7 +77,7 @@ export default function DiskManagementPage() {
         <select
           value={selectedDevice}
           onChange={(e) => { setSelectedDevice(e.target.value); setTaskMsg(null); }}
-          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-400 bg-white"
+          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-brand-400 bg-white"
         >
           <option value="">Select a device…</option>
           {devices.map((d) => (
@@ -109,7 +109,7 @@ export default function DiskManagementPage() {
                 const health = pct < 75 ? 'Healthy' : pct < 90 ? 'Warning' : 'Critical';
                 const healthColor = pct < 75 ? 'text-green-600' : pct < 90 ? 'text-amber-600' : 'text-red-600';
                 return (
-                  <div key={i} className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-3">
+                  <div key={i} className="bg-white border border-gray-100 rounded-xl p-4 shadow-xs space-y-3">
                     <div className="flex items-center justify-between">
                       <p className="font-semibold text-gray-800 text-sm truncate">{mount}</p>
                       <span className={`text-xs font-bold ${healthColor}`}>{health}</span>
@@ -132,7 +132,7 @@ export default function DiskManagementPage() {
           )}
 
           {/* Maintenance actions */}
-          <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm">
+          <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-xs">
             <h2 className="text-sm font-bold text-gray-800 mb-4">Maintenance Actions</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               {TASK_ACTIONS.map((action) => (

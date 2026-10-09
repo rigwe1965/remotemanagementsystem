@@ -73,7 +73,7 @@ export default function NetworkPage() {
       </div>
 
       {/* Scan trigger */}
-      <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm">
+      <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-xs">
         <h2 className="text-sm font-bold text-gray-800 mb-3">Start New Scan</h2>
         <div className="flex gap-3">
           <input
@@ -81,7 +81,7 @@ export default function NetworkPage() {
             value={subnet}
             onChange={(e) => setSubnet(e.target.value)}
             placeholder="e.g. 192.168.1.0/24"
-            className="flex-1 max-w-sm px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-400"
+            className="flex-1 max-w-sm px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-brand-400"
           />
           <button
             onClick={() => triggerScan.mutate(subnet)}
@@ -96,7 +96,7 @@ export default function NetworkPage() {
 
       {/* Active scan results */}
       {activeScan && (
-        <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm space-y-4">
+        <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-xs space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <h2 className="text-sm font-bold text-gray-800">Scan Results</h2>
@@ -158,7 +158,7 @@ export default function NetworkPage() {
       {/* Scan history */}
       <div>
         <h2 className="text-sm font-bold text-gray-700 mb-3">Scan History</h2>
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-xl border border-gray-100 shadow-xs overflow-hidden">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100 bg-gray-50">
@@ -175,7 +175,7 @@ export default function NetworkPage() {
                     <tr key={i}>
                       {Array.from({ length: 5 }).map((_, j) => (
                         <td key={j} className="px-4 py-3">
-                          <div className="h-4 bg-gray-100 rounded animate-pulse" />
+                          <div className="h-4 bg-gray-100 rounded-sm animate-pulse" />
                         </td>
                       ))}
                     </tr>

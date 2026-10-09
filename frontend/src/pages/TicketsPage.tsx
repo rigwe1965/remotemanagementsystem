@@ -76,7 +76,7 @@ export default function TicketsPage() {
               key={s || 'all'}
               onClick={() => { setStatusFilter(s); setPage(1); }}
               className={`px-3 py-1.5 text-xs font-semibold rounded-md transition ${
-                statusFilter === s ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                statusFilter === s ? 'bg-white text-gray-800 shadow-xs' : 'text-gray-500 hover:text-gray-700'
               }`}
             >
               {s.replace('_', ' ') || 'All'}
@@ -90,12 +90,12 @@ export default function TicketsPage() {
             placeholder="Search tickets…"
             value={search}
             onChange={(e) => handleSearch(e.target.value)}
-            className="pl-8 pr-3 py-1.5 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-brand-400 transition"
+            className="pl-8 pr-3 py-1.5 text-sm border border-gray-200 rounded-lg bg-white focus:outline-hidden focus:ring-2 focus:ring-brand-400 transition"
           />
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-xl border border-gray-100 shadow-xs overflow-hidden">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-100 bg-gray-50">
@@ -112,7 +112,7 @@ export default function TicketsPage() {
                   <tr key={i}>
                     {Array.from({ length: 5 }).map((_, j) => (
                       <td key={j} className="px-4 py-3">
-                        <div className="h-4 bg-gray-100 rounded animate-pulse" />
+                        <div className="h-4 bg-gray-100 rounded-sm animate-pulse" />
                       </td>
                     ))}
                   </tr>

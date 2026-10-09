@@ -24,7 +24,7 @@ const ICON_MAP = {
 
 export default function StatCard({ title, value, sub, icon, color = 'default' }: StatCardProps) {
   return (
-    <div className={`rounded-xl border p-5 shadow-sm flex items-start gap-4 ${COLOR_MAP[color]}`}>
+    <div className={`rounded-xl border p-5 shadow-xs flex items-start gap-4 ${COLOR_MAP[color]}`}>
       <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${ICON_MAP[color]}`}>
         {icon}
       </div>

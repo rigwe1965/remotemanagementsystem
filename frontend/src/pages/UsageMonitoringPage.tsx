@@ -129,7 +129,7 @@ export default function UsageMonitoringPage() {
           { label: 'Estimated Cost', value: isLoading ? '—' : fmtCost(totals?.estimated_cost_usd ?? 0) },
           { label: 'Error Rate', value: isLoading ? '—' : `${((totals?.error_rate ?? 0) * 100).toFixed(1)}%` },
         ].map((k) => (
-          <div key={k.label} className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
+          <div key={k.label} className="bg-white border border-gray-100 rounded-xl p-4 shadow-xs">
             <p className="text-[11px] font-bold uppercase tracking-wide text-gray-400">{k.label}</p>
             <p className="text-2xl font-bold text-gray-900 mt-1">{k.value}</p>
           </div>
@@ -137,7 +137,7 @@ export default function UsageMonitoringPage() {
       </div>
 
       {/* By service */}
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+      <div className="bg-white rounded-xl border border-gray-100 shadow-xs p-4">
         <h2 className="text-sm font-semibold text-gray-700 mb-3">By Service</h2>
         {services.length === 0 ? (
           <p className="text-sm text-gray-400 py-6 text-center">No usage recorded yet for this range.</p>
@@ -164,7 +164,7 @@ export default function UsageMonitoringPage() {
       </div>
 
       {/* By feature / user */}
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-xl border border-gray-100 shadow-xs overflow-hidden">
         <h2 className="text-sm font-semibold text-gray-700 p-4 pb-0">Top Features &amp; Users</h2>
         <table className="w-full text-sm mt-2">
           <thead>
@@ -199,7 +199,7 @@ export default function UsageMonitoringPage() {
 
       {/* Alert config */}
       {cfg && (
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 space-y-3">
+        <div className="bg-white rounded-xl border border-gray-100 shadow-xs p-4 space-y-3">
           <h2 className="text-sm font-semibold text-gray-700">Spike Alert Configuration</h2>
           <label className="flex items-center gap-2 text-sm text-gray-600">
             <input
@@ -215,7 +215,7 @@ export default function UsageMonitoringPage() {
               type="number" min={1.5} max={20} step={0.5}
               value={cfg.spike_multiplier}
               onChange={(e) => setConfigDraft({ ...cfg, spike_multiplier: Number(e.target.value) })}
-              className="ml-2 w-20 border border-gray-200 rounded px-2 py-1"
+              className="ml-2 w-20 border border-gray-200 rounded-sm px-2 py-1"
             />
           </label>
           <label className="block text-sm text-gray-600">
@@ -224,7 +224,7 @@ export default function UsageMonitoringPage() {
               type="text"
               value={cfg.emails}
               onChange={(e) => setConfigDraft({ ...cfg, emails: e.target.value })}
-              className="mt-1 w-full border border-gray-200 rounded px-2 py-1"
+              className="mt-1 w-full border border-gray-200 rounded-sm px-2 py-1"
             />
           </label>
           <button

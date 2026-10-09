@@ -58,7 +58,7 @@ export default function ClientPortalPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Portal header */}
-      <div className="bg-white border-b border-gray-100 shadow-sm">
+      <div className="bg-white border-b border-gray-100 shadow-xs">
         <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-brand-500 rounded-lg flex items-center justify-center">
@@ -110,7 +110,7 @@ export default function ClientPortalPage() {
 
         {/* New ticket form */}
         {showForm && (
-          <div className="bg-white border border-brand-100 rounded-xl p-5 shadow-sm space-y-4">
+          <div className="bg-white border border-brand-100 rounded-xl p-5 shadow-xs space-y-4">
             <h2 className="text-sm font-bold text-gray-800">Submit New Ticket</h2>
             <div className="space-y-3">
               <div>
@@ -120,7 +120,7 @@ export default function ClientPortalPage() {
                   value={form.title}
                   onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
                   placeholder="Brief description of your issue"
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-400"
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-brand-400"
                 />
               </div>
               <div>
@@ -128,7 +128,7 @@ export default function ClientPortalPage() {
                 <select
                   value={form.priority}
                   onChange={(e) => setForm((f) => ({ ...f, priority: e.target.value as any }))}
-                  className="w-40 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-400 bg-white"
+                  className="w-40 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-brand-400 bg-white"
                 >
                   <option value="low">Low</option>
                   <option value="medium">Medium</option>
@@ -143,7 +143,7 @@ export default function ClientPortalPage() {
                   onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
                   placeholder="Please describe your issue in full…"
                   rows={4}
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-400 resize-none"
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-brand-400 resize-none"
                 />
               </div>
             </div>
@@ -161,7 +161,7 @@ export default function ClientPortalPage() {
         )}
 
         {/* Ticket list */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-xl border border-gray-100 shadow-xs overflow-hidden">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100 bg-gray-50">
@@ -177,7 +177,7 @@ export default function ClientPortalPage() {
                     <tr key={i}>
                       {Array.from({ length: 4 }).map((_, j) => (
                         <td key={j} className="px-4 py-3">
-                          <div className="h-4 bg-gray-100 rounded animate-pulse" />
+                          <div className="h-4 bg-gray-100 rounded-sm animate-pulse" />
                         </td>
                       ))}
                     </tr>
