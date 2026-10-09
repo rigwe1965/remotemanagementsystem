@@ -61,7 +61,7 @@ export default function SoftwarePatchesPage() {
           <select
             value={selectedDevice}
             onChange={(e) => setSelectedDevice(e.target.value)}
-            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-400 bg-white"
+            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-brand-400 bg-white"
           >
             <option value="">Select a device…</option>
             {agentDevices.map((d) => (
@@ -81,7 +81,7 @@ export default function SoftwarePatchesPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search software…"
-              className="pl-8 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-400"
+              className="pl-8 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-brand-400"
             />
           </div>
         )}
@@ -94,7 +94,7 @@ export default function SoftwarePatchesPage() {
           <p className="text-xs mt-1 text-gray-300">Agentless devices not shown — no agent to report inventory.</p>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-xl border border-gray-100 shadow-xs overflow-hidden">
           <div className="px-4 py-3 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
             <p className="text-xs font-semibold text-gray-500">
               {isLoading ? 'Loading…' : `${filtered.length} item${filtered.length !== 1 ? 's' : ''}`}
@@ -115,7 +115,7 @@ export default function SoftwarePatchesPage() {
                     <tr key={i}>
                       {Array.from({ length: 4 }).map((_, j) => (
                         <td key={j} className="px-4 py-3">
-                          <div className="h-4 bg-gray-100 rounded animate-pulse" />
+                          <div className="h-4 bg-gray-100 rounded-sm animate-pulse" />
                         </td>
                       ))}
                     </tr>

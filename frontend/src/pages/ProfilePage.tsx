@@ -83,7 +83,7 @@ export default function ProfilePage() {
         {(['profile', 'password', 'mfa'] as const).map((t) => (
           <button key={t} onClick={() => setTab(t)}
             className={`px-4 py-1.5 text-xs font-semibold rounded-md transition capitalize ${
-              tab === t ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+              tab === t ? 'bg-white text-gray-800 shadow-xs' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
             {t === 'mfa' ? 'Two-Factor Auth' : t.charAt(0).toUpperCase() + t.slice(1)}
@@ -92,9 +92,9 @@ export default function ProfilePage() {
       </div>
 
       {tab === 'profile' && (
-        <div className="bg-white border border-gray-100 rounded-xl p-6 shadow-sm max-w-md space-y-4">
+        <div className="bg-white border border-gray-100 rounded-xl p-6 shadow-xs max-w-md space-y-4">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-brand-500 to-brand-300 flex items-center justify-center text-white text-xl font-bold">
+            <div className="w-14 h-14 rounded-full bg-linear-to-br from-brand-500 to-brand-300 flex items-center justify-center text-white text-xl font-bold">
               {(user?.full_name || user?.email || '?').split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase()}
             </div>
             <div>
@@ -117,7 +117,7 @@ export default function ProfilePage() {
       )}
 
       {tab === 'password' && (
-        <div className="bg-white border border-gray-100 rounded-xl p-6 shadow-sm max-w-md space-y-4">
+        <div className="bg-white border border-gray-100 rounded-xl p-6 shadow-xs max-w-md space-y-4">
           <h2 className="text-sm font-bold text-gray-800 flex items-center gap-2">
             <Lock size={15} className="text-brand-500" />
             Change Password
@@ -132,7 +132,7 @@ export default function ProfilePage() {
                   type="password"
                   value={pwForm[field]}
                   onChange={(e) => setPwForm((f) => ({ ...f, [field]: e.target.value }))}
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-400"
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-brand-400"
                 />
               </div>
             ))}
@@ -153,7 +153,7 @@ export default function ProfilePage() {
       )}
 
       {tab === 'mfa' && (
-        <div className="bg-white border border-gray-100 rounded-xl p-6 shadow-sm max-w-md space-y-4">
+        <div className="bg-white border border-gray-100 rounded-xl p-6 shadow-xs max-w-md space-y-4">
           <h2 className="text-sm font-bold text-gray-800 flex items-center gap-2">
             <Shield size={15} className="text-brand-500" />
             Two-Factor Authentication
@@ -201,7 +201,7 @@ export default function ProfilePage() {
                   onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                   maxLength={6}
                   placeholder="000000"
-                  className="w-32 px-3 py-2 text-sm font-mono text-center border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-400"
+                  className="w-32 px-3 py-2 text-sm font-mono text-center border border-gray-200 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-brand-400"
                 />
               </div>
               {mfaMsg && (

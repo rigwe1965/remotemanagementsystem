@@ -84,7 +84,7 @@ export default function AdminPage() {
         {(['users', 'org'] as const).map((t) => (
           <button key={t} onClick={() => setTab(t)}
             className={`px-4 py-1.5 text-xs font-semibold rounded-md transition capitalize ${
-              tab === t ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+              tab === t ? 'bg-white text-gray-800 shadow-xs' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
             {t === 'users' ? 'Users' : 'Organisation'}
@@ -114,7 +114,7 @@ export default function AdminPage() {
 
           {/* Create user form */}
           {showForm && (
-            <div className="bg-white border border-brand-100 rounded-xl p-5 shadow-sm space-y-3">
+            <div className="bg-white border border-brand-100 rounded-xl p-5 shadow-xs space-y-3">
               <h3 className="text-sm font-bold text-gray-800">New User</h3>
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -123,7 +123,7 @@ export default function AdminPage() {
                     type="text"
                     value={form.full_name}
                     onChange={(e) => setForm((f) => ({ ...f, full_name: e.target.value }))}
-                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-400"
+                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-brand-400"
                     placeholder="Jane Smith"
                   />
                 </div>
@@ -133,7 +133,7 @@ export default function AdminPage() {
                     type="email"
                     value={form.email}
                     onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-400"
+                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-brand-400"
                     placeholder="jane@example.com"
                   />
                 </div>
@@ -143,7 +143,7 @@ export default function AdminPage() {
                     type="password"
                     value={form.password}
                     onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
-                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-400"
+                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-brand-400"
                     placeholder="Min. 8 characters"
                   />
                 </div>
@@ -152,7 +152,7 @@ export default function AdminPage() {
                   <select
                     value={form.role}
                     onChange={(e) => setForm((f) => ({ ...f, role: e.target.value as any }))}
-                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-400"
+                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-brand-400"
                   >
                     {ROLE_OPTIONS.map((r) => (
                       <option key={r} value={r}>{r}</option>
@@ -165,7 +165,7 @@ export default function AdminPage() {
                   type="checkbox"
                   checked={form.must_change_password}
                   onChange={(e) => setForm((f) => ({ ...f, must_change_password: e.target.checked }))}
-                  className="rounded border-gray-300 text-brand-500 focus:ring-brand-400"
+                  className="rounded-sm border-gray-300 text-brand-500 focus:ring-brand-400"
                 />
                 Force password change on first login
               </label>
@@ -190,7 +190,7 @@ export default function AdminPage() {
             </div>
           )}
 
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="bg-white rounded-xl border border-gray-100 shadow-xs overflow-hidden">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100 bg-gray-50">
@@ -207,7 +207,7 @@ export default function AdminPage() {
                       <tr key={i}>
                         {Array.from({ length: 5 }).map((_, j) => (
                           <td key={j} className="px-4 py-3">
-                            <div className="h-4 bg-gray-100 rounded animate-pulse" />
+                            <div className="h-4 bg-gray-100 rounded-sm animate-pulse" />
                           </td>
                         ))}
                       </tr>
@@ -232,7 +232,7 @@ export default function AdminPage() {
                               <button
                                 onClick={() => unlockUser.mutate(u.id)}
                                 title="Unlock account"
-                                className="p-1.5 rounded hover:bg-amber-50 text-gray-300 hover:text-amber-500 transition"
+                                className="p-1.5 rounded-sm hover:bg-amber-50 text-gray-300 hover:text-amber-500 transition"
                               >
                                 <Lock size={13} />
                               </button>
@@ -243,7 +243,7 @@ export default function AdminPage() {
                                   }
                                 }}
                                 title="Delete user"
-                                className="p-1.5 rounded hover:bg-red-50 text-gray-300 hover:text-red-500 transition"
+                                className="p-1.5 rounded-sm hover:bg-red-50 text-gray-300 hover:text-red-500 transition"
                               >
                                 <Trash2 size={13} />
                               </button>
@@ -282,7 +282,7 @@ export default function AdminPage() {
 
       {tab === 'org' && (
         <div className="space-y-4 max-w-lg">
-          <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm space-y-3">
+          <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-xs space-y-3">
             <h3 className="text-sm font-bold text-gray-800">Agent Registration Token</h3>
             <p className="text-xs text-gray-500">
               Agents use this token to self-register with the RMM. Keep it confidential.

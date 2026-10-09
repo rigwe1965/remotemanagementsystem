@@ -76,7 +76,7 @@ export default function ReportsPage() {
                 <div key={i} className="h-24 bg-white border border-gray-100 rounded-xl animate-pulse" />
               ))
             : (templates ?? []).map((t) => (
-                <div key={t.id} className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
+                <div key={t.id} className="bg-white border border-gray-100 rounded-xl p-4 shadow-xs">
                   <div className="flex items-start gap-3">
                     <div className="w-8 h-8 bg-brand-50 rounded-lg flex items-center justify-center shrink-0">
                       <BarChart2 size={15} className="text-brand-500" />
@@ -113,7 +113,7 @@ export default function ReportsPage() {
             Refresh
           </button>
         </div>
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-xl border border-gray-100 shadow-xs overflow-hidden">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100 bg-gray-50">
@@ -130,7 +130,7 @@ export default function ReportsPage() {
                     <tr key={i}>
                       {Array.from({ length: 5 }).map((_, j) => (
                         <td key={j} className="px-4 py-3">
-                          <div className="h-4 bg-gray-100 rounded animate-pulse" />
+                          <div className="h-4 bg-gray-100 rounded-sm animate-pulse" />
                         </td>
                       ))}
                     </tr>

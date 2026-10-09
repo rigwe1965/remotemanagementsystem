@@ -71,7 +71,7 @@ export default function AutomationPage() {
         {(['profiles', 'runs'] as const).map((t) => (
           <button key={t} onClick={() => setTab(t)}
             className={`px-4 py-1.5 text-xs font-semibold rounded-md transition capitalize ${
-              tab === t ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+              tab === t ? 'bg-white text-gray-800 shadow-xs' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
             {t === 'profiles' ? 'Profiles' : 'Run History'}
@@ -93,7 +93,7 @@ export default function AutomationPage() {
                 <div key={i} className="h-20 bg-white border border-gray-100 rounded-xl animate-pulse" />
               ))
             : (profiles?.items ?? []).map((p) => (
-                <div key={p.id} className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
+                <div key={p.id} className="bg-white border border-gray-100 rounded-xl p-4 shadow-xs">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex items-start gap-3 min-w-0">
                       <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
@@ -109,7 +109,7 @@ export default function AutomationPage() {
                           }`}>
                             {p.is_active ? 'ACTIVE' : 'INACTIVE'}
                           </span>
-                          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">{p.trigger_type}</span>
+                          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-sm bg-gray-100 text-gray-500">{p.trigger_type}</span>
                         </div>
                         {p.description && <p className="text-xs text-gray-400 mt-0.5">{p.description}</p>}
                         <div className="flex items-center gap-3 mt-1.5 text-[11px] text-gray-400">
@@ -148,7 +148,7 @@ export default function AutomationPage() {
               Refresh
             </button>
           </div>
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="bg-white rounded-xl border border-gray-100 shadow-xs overflow-hidden">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100 bg-gray-50">
@@ -165,7 +165,7 @@ export default function AutomationPage() {
                       <tr key={i}>
                         {Array.from({ length: 5 }).map((_, j) => (
                           <td key={j} className="px-4 py-3">
-                            <div className="h-4 bg-gray-100 rounded animate-pulse" />
+                            <div className="h-4 bg-gray-100 rounded-sm animate-pulse" />
                           </td>
                         ))}
                       </tr>

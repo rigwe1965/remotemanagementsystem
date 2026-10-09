@@ -144,7 +144,7 @@ export default function TerminalPage() {
             <select
               value={selectedDevice}
               onChange={(e) => setSelectedDevice(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-400 bg-white"
+              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-brand-400 bg-white"
             >
               <option value="">Select online device…</option>
               {onlineDevices.map((d) => (
@@ -215,7 +215,7 @@ export default function TerminalPage() {
               onKeyDown={handleKeyDown}
               disabled={sendCmd.isPending}
               placeholder="Enter command…"
-              className="flex-1 bg-transparent text-gray-100 font-mono text-sm outline-none placeholder-gray-600 disabled:opacity-50"
+              className="flex-1 bg-transparent text-gray-100 font-mono text-sm outline-hidden placeholder-gray-600 disabled:opacity-50"
               autoComplete="off"
               spellCheck={false}
             />

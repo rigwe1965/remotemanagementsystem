@@ -55,7 +55,7 @@ export default function Layout() {
       <aside className="w-60 bg-brand-800 flex flex-col shrink-0">
         {/* Brand */}
         <div className="flex items-center gap-3 px-5 py-5 border-b border-brand-700">
-          <div className="w-8 h-8 bg-gradient-to-br from-brand-400 to-brand-600 rounded-lg flex items-center justify-center shadow">
+          <div className="w-8 h-8 bg-linear-to-br from-brand-400 to-brand-600 rounded-lg flex items-center justify-center shadow-sm">
             <Monitor size={16} className="text-white" />
           </div>
           <span className="text-white font-bold text-base tracking-tight">RMM System</span>
@@ -64,7 +64,7 @@ export default function Layout() {
         {/* User pill */}
         <div className="px-4 py-4 border-b border-brand-700">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-brand-500 to-brand-300 flex items-center justify-center text-white text-sm font-bold shrink-0">
+            <div className="w-9 h-9 rounded-full bg-linear-to-br from-brand-500 to-brand-300 flex items-center justify-center text-white text-sm font-bold shrink-0">
               {initials}
             </div>
             <div className="min-w-0">
@@ -90,7 +90,7 @@ export default function Layout() {
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                   isActive
-                    ? 'bg-brand-500 text-white shadow-sm'
+                    ? 'bg-brand-500 text-white shadow-xs'
                     : 'text-brand-200 hover:bg-brand-700 hover:text-white'
                 }`
               }
