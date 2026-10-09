@@ -1,7 +1,8 @@
-# Usage:  .\rmm.ps1 start | stop | restart | status   [-Agent] [-Frontend]
+# Usage:  .\rmm.ps1 start | stop | restart | status   [-NoAgent] [-Frontend]
 param(
     [ValidateSet('start','stop','restart','status','test')][string]$Action = 'restart',
-    [switch]$Agent,      # also run the local agent (needs an elevated shell for patching)
+    [switch]$Agent,      # kept for compatibility - the agent now starts by default
+    [switch]$NoAgent,    # skip the local agent (it needs an elevated shell for patching)
     [switch]$Frontend    # also run the React dev server
 )
 
@@ -56,7 +57,7 @@ function Start-All {
     Start-Svc 'Beat'      'api'       '.\venv\Scripts\python.exe -m celery -A tasks.celery_app beat -l info --pidfile=celerybeat.pid'
     Start-Svc 'Dashboard' 'dashboard' '.\venv\Scripts\python.exe -m streamlit run app.py'
     if ($Frontend) { Start-Svc 'React' 'frontend' 'npm run dev' }
-    if ($Agent)    { Start-Svc 'Agent' 'agent'    '.\venv\Scripts\python.exe rmm_agent.py' }
+    if (-not $NoAgent) { Start-Svc 'Agent' 'agent'    '.\venv\Scripts\python.exe rmm_agent.py' }
 
     Write-Host 'Waiting for API health...'
     for ($i = 0; $i -lt 60; $i++) {
