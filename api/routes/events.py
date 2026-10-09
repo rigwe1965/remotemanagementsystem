@@ -20,6 +20,10 @@ def _validate_token_param(token: str) -> tuple:
         return None, "token required"
     try:
         claims = decode_token(token)
+        # Query-string tokens are exposed in logs/history: accept only short-lived
+        # access tokens, never long-lived refresh tokens.
+        if claims.get("type") != "access":
+            return None, "invalid token"
         return claims, None
     except ExpiredSignatureError:
         return None, "token expired"

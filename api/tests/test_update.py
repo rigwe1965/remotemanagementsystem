@@ -172,3 +172,29 @@ class TestAgentDownload:
             assert r.headers.get("Content-Length") == str(len(content))
         finally:
             _cleanup(app, device_id=dev.id)
+
+
+class TestExpiredAgentToken:
+    def test_expired_token_rejected(self, app, client):
+        from datetime import datetime, timedelta, timezone
+        from extensions import db
+        from models.audit import AgentToken
+        with app.app_context():
+            d = _make_device(app)
+            raw = _make_agent_token(app, d.id, "expired-token-for-tests")
+            AgentToken.query.filter_by(device_id=d.id).update(
+                {"expires_at": datetime.now(timezone.utc) - timedelta(days=1)})
+            db.session.commit()
+            r = client.get("/api/agents/update/check?version=0.0.1", headers=auth_headers(raw))
+            _cleanup(app, device_id=d.id)
+        assert r.status_code == 401
+
+
+class TestSseRefreshTokenRejected:
+    def test_refresh_token_not_accepted(self, app, client):
+        with app.app_context():
+            uid, email, pw = create_user(app, role="admin")
+            refresh = login(client, email, pw).get_json()["refresh_token"]
+            r = client.get(f"/api/events/stream?token={refresh}")
+            delete_user(app, uid)
+        assert r.status_code == 401
