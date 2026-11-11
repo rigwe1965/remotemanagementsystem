@@ -23,7 +23,7 @@ reportlab==4.4.1
 openpyxl==3.1.5
 python-dateutil==2.9.0
 requests==2.33.0
-Pillow==12.3.0
+Pillow==13.0.0
 stripe==12.3.0
 anthropic>=0.40.0,<2.0.0
 # audits/security_audit.md Finding D2 — every dependency below now has an
@@ -44,8 +44,9 @@ paho-mqtt>=1.6.1,<2.0.0
 # install otherwise pulls latest pyasn1 (0.6.x), which dropped the pyasn1.compat
 # module pysnmp 4.4.x's hlapi imports at load time.
 pysnmp>=4.4.12,<5.0.0
-# SECURITY NOTE (audits/security_audit.md Finding D1): pyasn1 0.4.8 has 3 known
-# advisories (PYSEC-2026-2263, -3456, -3457) fixed in 0.6.3/0.6.4 — NOT upgraded
+# SECURITY NOTE (audits/security_audit.md Finding D1): pyasn1 0.4.8 has 7 known
+# advisories (PYSEC-2026-2263, -3455, -3456, -3457 fixed in 0.6.3/0.6.4; CVE-2026-119194..119197
+# fixed in 0.6.5, added 2026-11-11) — NOT upgraded
 # here. Confirmed by direct test: installing pyasn1==0.6.4 alongside pysnmp==4.4.12
 # breaks `import pysnmp.hlapi` outright (ModuleNotFoundError: pyasn1.compat.octets
 # no longer exists), exactly as the comment above already predicted. Fixing this
