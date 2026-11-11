@@ -117,6 +117,23 @@ def _login_css() -> str:
         flex: 1 1 100% !important;
     }}
 }}
+/* Narrow windows (and the demo guide's split view): the sign-in card is one of three equal columns, which left it about 140px wide
+   next to the open sidebar. Hide the sidebar, drop the two empty side columns and let the card be up to 440px, centred. Only the
+   outer row is touched (not the logo's own columns). */
+@media (max-width: 1100px) {{
+    [data-testid="stSidebar"],
+    [data-testid="stSidebarCollapsedControl"],
+    [data-testid="collapsedControl"] {{ display: none !important; }}
+    [data-testid="stHorizontalBlock"]:not([data-testid="stColumn"] [data-testid="stHorizontalBlock"]) {{
+        justify-content: center !important;
+    }}
+    [data-testid="stHorizontalBlock"]:not([data-testid="stColumn"] [data-testid="stHorizontalBlock"]) > [data-testid="stColumn"]:nth-child(odd) {{
+        display: none !important;
+    }}
+    [data-testid="stHorizontalBlock"]:not([data-testid="stColumn"] [data-testid="stHorizontalBlock"]) > [data-testid="stColumn"]:nth-child(2) {{
+        flex: 0 1 440px !important; width: auto !important; min-width: 0 !important; max-width: 100% !important;
+    }}
+}}
 """
     static_dir = pathlib.Path(__file__).parent / "static"
     static_dir.mkdir(exist_ok=True)
