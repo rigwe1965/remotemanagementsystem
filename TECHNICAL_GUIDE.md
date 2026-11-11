@@ -2319,11 +2319,11 @@ Originally scoped as a multi-week project on the assumption that a 7-package/55-
 | `cryptography` (agent) | 44.0.3 → 50.0.1 | PYSEC-2026-2141/35/3552/3553/3554, GHSA-537c-gmf6-5ccf (api's `cryptography` was already ≥50.0.0 via the D2 upper-bound fix below, so only agent needed the bump) |
 | `browserslist`, `nanoid`, `postcss` (frontend, transitive) | patch bumps via `npm audit fix` | 3 advisories |
 | `react-router` / `react-router-dom` (frontend) | 7.18.1 → 7.18.4 | 2 advisories — a patch release within the existing `^7.18.1` range, no major-version migration |
-| `pyasn1` (api) | **not upgraded — deliberate, see below** | 4 advisories remain |
+| `pyasn1` (api) | 0.4.8 → 0.6.5 (resolved 2026-11-11, see below) | was the one deliberate exception; fixed by moving `snmp_tasks.py` to pysnmp 7.x |
 
-**The one real blocker:** `pyasn1` 0.4.8 has 4 known advisories (PYSEC-2026-2263/3455/3456/3457), fixed in 0.6.3/0.6.4 — but `tasks/snmp_tasks.py` uses `pysnmp==4.4.12`'s classic synchronous `pysnmp.hlapi` API, which imports `pyasn1.compat.octets`, a module removed in pyasn1 0.5+. Confirmed by direct test: installing `pyasn1==0.6.4` alongside the pinned `pysnmp` version breaks `import pysnmp.hlapi` outright (`ModuleNotFoundError`). A real fix needs a rewrite of `snmp_tasks.py` onto pysnmp 5.x/7.x's async API — a subsystem rewrite, not a version bump — so it stays pinned old, with the risk (SNMP response *parsing* only, from devices already on the polled customer's own network) and the reproduction steps documented directly in `api/requirements.txt` and `.github/workflows/ci.yml`.
+**The one real blocker (resolved 2026-11-11):** `pyasn1` 0.4.8 had known advisories (first 4 PYSEC ids, later 4 more, CVE-2026-119194..119197) because `tasks/snmp_tasks.py` used `pysnmp==4.4.12`'s classic synchronous `pysnmp.hlapi` API, which imports `pyasn1.compat.octets`, a module removed in pyasn1 0.5+. The fix was the rewrite this paragraph used to call for: `_snmp_get` now uses pysnmp 7.x's asyncio API (`pysnmp.hlapi.v1arch.asyncio`, one request run to completion with `asyncio.run`), `pysnmp>=7.1.32,<8.0.0` is pinned, `pyasn1` is no longer pinned (pysnmp 7.x pulls 0.6.5+), and `tests/test_snmp_get.py` tests the real call against a fake SNMP v1 device on the loopback address.
 
-**CI enforcement:** `pip-audit`/`npm audit` steps in `ci.yml` had `continue-on-error: true` removed; the `api` step additionally passes `--ignore-vuln` for exactly the 4 documented `pyasn1` IDs. Any new vulnerability, in any package, now fails the build.
+**CI enforcement:** `pip-audit`/`npm audit` steps in `ci.yml` had `continue-on-error: true` removed. The `api` step used to pass `--ignore-vuln` for the documented `pyasn1` ids; since the SNMP move to pysnmp 7.x (2026-11-11) there are no exceptions: any known vulnerability, in any package, fails the build.
 
 ### 22.7 Unpinned dependency upper bounds (Finding D2, 3/10)
 

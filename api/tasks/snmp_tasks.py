@@ -29,27 +29,43 @@ _SNMP_DEVICE_TYPES = {"switch", "ap", "ups", "router", "iot_gateway"}
 from tasks._app_singleton import get_app as _get_app
 
 
-def _snmp_get(ip: str, community: str, oid: str):
-    """Single SNMP GET. Returns (value, None) or (None, error_string)."""
+def _snmp_get(ip: str, community: str, oid: str, port: int = 161):
+    """Single SNMP GET (v1, community string). Returns (value, None) or (None, error_string).
+
+    pysnmp 7.x is asyncio-first, so the one request runs to completion on its own event
+    loop here and the caller (a synchronous Celery task) sees the same blocking call as
+    before. `port` exists so tests can point at a local fake device.
+    """
     try:
-        from pysnmp.hlapi import (
-            getCmd, SnmpEngine, CommunityData, UdpTransportTarget,
-            ContextData, ObjectType, ObjectIdentity,
+        import asyncio
+        from pysnmp.hlapi.v1arch.asyncio import (
+            SnmpDispatcher, CommunityData, UdpTransportTarget,
+            ObjectType, ObjectIdentity, get_cmd,
         )
-        iterator = getCmd(
-            SnmpEngine(),
-            CommunityData(community, mpModel=0),
-            UdpTransportTarget((ip, 161), timeout=_SNMP_TIMEOUT, retries=_SNMP_RETRIES),
-            ContextData(),
-            ObjectType(ObjectIdentity(oid)),
-        )
-        error_indication, error_status, error_index, var_binds = next(iterator)
+    except ImportError:
+        return None, "pysnmp_not_installed"
+
+    async def _get():
+        dispatcher = SnmpDispatcher()
+        try:
+            target = await UdpTransportTarget.create(
+                (ip, port), timeout=_SNMP_TIMEOUT, retries=_SNMP_RETRIES,
+            )
+            return await get_cmd(
+                dispatcher,
+                CommunityData(community, mpModel=0),
+                target,
+                ObjectType(ObjectIdentity(oid)),
+            )
+        finally:
+            dispatcher.close()
+
+    try:
+        error_indication, error_status, _error_index, var_binds = asyncio.run(_get())
         if error_indication or error_status:
             return None, str(error_indication or error_status)
         _, val = var_binds[0]
         return int(val), None
-    except ImportError:
-        return None, "pysnmp_not_installed"
     except Exception as exc:
         return None, str(exc)
 
