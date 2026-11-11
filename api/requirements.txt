@@ -37,22 +37,9 @@ cryptography>=42.0.0,<51.0.0
 # tasks/mqtt_tasks.py uses the 1.x callback signatures (on_connect(client, userdata,
 # flags, rc), mqtt.Client() with no CallbackAPIVersion) — paho-mqtt 2.0 changed both.
 paho-mqtt>=1.6.1,<2.0.0
-# tasks/snmp_tasks.py imports the classic synchronous pysnmp.hlapi API
-# (getCmd/SnmpEngine/CommunityData/...). That module was removed starting with
-# pysnmp 5.x (lextudio fork, asyncio-first rewrite) — confirmed by import error
-# against the installed 7.1.29. pyasn1 is pinned alongside it: a fresh pysnmp==4.4.12
-# install otherwise pulls latest pyasn1 (0.6.x), which dropped the pyasn1.compat
-# module pysnmp 4.4.x's hlapi imports at load time.
-pysnmp>=4.4.12,<5.0.0
-# SECURITY NOTE (audits/security_audit.md Finding D1): pyasn1 0.4.8 has 7 known
-# advisories (PYSEC-2026-2263, -3455, -3456, -3457 fixed in 0.6.3/0.6.4; CVE-2026-119194..119197
-# fixed in 0.6.5, added 2026-11-11) — NOT upgraded
-# here. Confirmed by direct test: installing pyasn1==0.6.4 alongside pysnmp==4.4.12
-# breaks `import pysnmp.hlapi` outright (ModuleNotFoundError: pyasn1.compat.octets
-# no longer exists), exactly as the comment above already predicted. Fixing this
-# requires rewriting tasks/snmp_tasks.py onto pysnmp 5.x/7.x's async API (a real
-# subsystem rewrite, not a version bump) — out of scope for this pass. Risk is
-# narrow (SNMP response *parsing* only, from devices already on the polled
-# customer's own network) but real; tracked here rather than silently ignored.
-pyasn1<0.5.0
+# tasks/snmp_tasks.py uses pysnmp 7.x's asyncio API (pysnmp.hlapi.v1arch.asyncio). Do not pin
+# pyasn1: pysnmp 7.x brings a current one (0.6.5 or newer, which has the security fixes).
+# (Before 2026-11-11 this was pysnmp 4.4.12 with pyasn1<0.5.0, a pin that held eight pyasn1
+# advisories open; see git history and audits/security_audit.md Finding D1.)
+pysnmp>=7.1.32,<8.0.0
 google-auth>=2.58.1,<3.0.0
