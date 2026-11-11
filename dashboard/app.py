@@ -120,7 +120,7 @@ def _login_css() -> str:
 /* Narrow windows (and the demo guide's split view): the sign-in card is one of three equal columns, which left it about 140px wide
    next to the open sidebar. Hide the sidebar, drop the two empty side columns and let the card be up to 440px, centred. Only the
    outer row is touched (not the logo's own columns). */
-@media (max-width: 1100px) {{
+@media (max-width: 1500px) {{
     [data-testid="stSidebar"],
     [data-testid="stSidebarCollapsedControl"],
     [data-testid="collapsedControl"] {{ display: none !important; }}
