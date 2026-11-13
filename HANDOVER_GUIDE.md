@@ -1,11 +1,11 @@
 # Facyke RMM System — Complete Handbook
 
 **Remote Monitoring and Management Platform**
-Version 1.0 — Built exclusively for Facyke-AI Agency
+Version 1.0 — Built exclusively for Facyke Agency
 
 ---
 
-**Prepared for:** Facyke-AI Agency
+**Prepared for:** Facyke Agency
 **System URL:** http://localhost:8501
 **API URL:** http://localhost:5000
 **Document version:** 9.0 (React Frontend, Cross-Platform Agent, Screenshot Capture, IoT/MQTT, Performance Hardening, Binary Deployment, Mobile Device Management, API & Token Usage Monitoring)

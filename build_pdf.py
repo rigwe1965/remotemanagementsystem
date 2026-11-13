@@ -530,7 +530,7 @@ def md_to_flowables(md_text: str) -> list:
 # ── Cover page flowables ───────────────────────────────────────────────────────
 
 def cover_page(title: str, subtitle: str, tagline: str, version_line: str,
-               prepared_for: str | None = "Facyke-AI Agency") -> list:
+               prepared_for: str | None = "Facyke Agency") -> list:
     items = [
         Spacer(1, 62 * mm),   # below green header band
         Paragraph(title, styles["cover_title"]),
@@ -561,7 +561,7 @@ def cover_page(title: str, subtitle: str, tagline: str, version_line: str,
 
 def build(src: Path, dst: Path, *, title: str, subtitle: str, tagline: str, version_line: str,
           pdf_title: str, pdf_subject: str, footer_title: str, band_text: str,
-          prepared_for: str | None = "Facyke-AI Agency"):
+          prepared_for: str | None = "Facyke Agency"):
     print(f"Reading {src} …")
     md = src.read_text(encoding="utf-8")
 
@@ -576,7 +576,7 @@ def build(src: Path, dst: Path, *, title: str, subtitle: str, tagline: str, vers
         topMargin=MARGIN,
         bottomMargin=22 * mm,   # leave room for footer
         title=pdf_title,
-        author="Facyke-AI Agency",
+        author="Facyke Agency",
         subject=pdf_subject,
     )
 
@@ -600,7 +600,7 @@ if __name__ == "__main__":
         pdf_title="Facyke RMM System — Handover & User Guide",
         pdf_subject="Facyke RMM System — Staff handover and user guide",
         footer_title="Facyke RMM System — Handover & User Guide",
-        band_text="Prepared for Facyke-AI Agency · Confidential · v10.0",
+        band_text="Prepared for Facyke Agency · Confidential · v10.0",
     )
 
     build(
@@ -611,5 +611,5 @@ if __name__ == "__main__":
         pdf_title="Facyke RMM System — Technical Guide",
         pdf_subject="Facyke RMM System — Developer and architect reference",
         footer_title="Facyke RMM System — Technical Guide",
-        band_text="Prepared for Facyke-AI Agency · Confidential · v1.6",
+        band_text="Prepared for Facyke Agency · Confidential · v1.6",
     )
