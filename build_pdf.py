@@ -530,7 +530,7 @@ def md_to_flowables(md_text: str) -> list:
 # ── Cover page flowables ───────────────────────────────────────────────────────
 
 def cover_page(title: str, subtitle: str, tagline: str, version_line: str,
-               prepared_for: str | None = "Faiyke-AI Agency") -> list:
+               prepared_for: str | None = "Facyke-AI Agency") -> list:
     items = [
         Spacer(1, 62 * mm),   # below green header band
         Paragraph(title, styles["cover_title"]),
@@ -561,7 +561,7 @@ def cover_page(title: str, subtitle: str, tagline: str, version_line: str,
 
 def build(src: Path, dst: Path, *, title: str, subtitle: str, tagline: str, version_line: str,
           pdf_title: str, pdf_subject: str, footer_title: str, band_text: str,
-          prepared_for: str | None = "Faiyke-AI Agency"):
+          prepared_for: str | None = "Facyke-AI Agency"):
     print(f"Reading {src} …")
     md = src.read_text(encoding="utf-8")
 
@@ -576,7 +576,7 @@ def build(src: Path, dst: Path, *, title: str, subtitle: str, tagline: str, vers
         topMargin=MARGIN,
         bottomMargin=22 * mm,   # leave room for footer
         title=pdf_title,
-        author="Faiyke-AI Agency",
+        author="Facyke-AI Agency",
         subject=pdf_subject,
     )
 
@@ -594,22 +594,22 @@ if __name__ == "__main__":
 
     build(
         base / "HANDOVER_GUIDE.md", base / "HANDOVER_GUIDE.pdf",
-        title="Faiyke RMM System", subtitle="Handover &amp; User Guide",
+        title="Facyke RMM System", subtitle="Handover &amp; User Guide",
         tagline="Complete reference for all staff — from first login to advanced automation",
         version_line="Version 10.0 · September 2026",
-        pdf_title="Faiyke RMM System — Handover & User Guide",
-        pdf_subject="Faiyke RMM System — Staff handover and user guide",
-        footer_title="Faiyke RMM System — Handover & User Guide",
-        band_text="Prepared for Faiyke-AI Agency · Confidential · v10.0",
+        pdf_title="Facyke RMM System — Handover & User Guide",
+        pdf_subject="Facyke RMM System — Staff handover and user guide",
+        footer_title="Facyke RMM System — Handover & User Guide",
+        band_text="Prepared for Facyke-AI Agency · Confidential · v10.0",
     )
 
     build(
         base / "TECHNICAL_GUIDE.md", base / "TECHNICAL_GUIDE.pdf",
-        title="Faiyke RMM System", subtitle="Technical Guide",
+        title="Facyke RMM System", subtitle="Technical Guide",
         tagline="Architecture, data models, API reference, and extension guide",
         version_line="Version 1.6 · September 2026",
-        pdf_title="Faiyke RMM System — Technical Guide",
-        pdf_subject="Faiyke RMM System — Developer and architect reference",
-        footer_title="Faiyke RMM System — Technical Guide",
-        band_text="Prepared for Faiyke-AI Agency · Confidential · v1.6",
+        pdf_title="Facyke RMM System — Technical Guide",
+        pdf_subject="Facyke RMM System — Developer and architect reference",
+        footer_title="Facyke RMM System — Technical Guide",
+        band_text="Prepared for Facyke-AI Agency · Confidential · v1.6",
     )
