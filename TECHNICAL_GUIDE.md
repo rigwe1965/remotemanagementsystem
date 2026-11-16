@@ -1414,7 +1414,7 @@ COLLECTORS = {
 | DB credentials in env | `.env` in `.gitignore`. Never committed. |
 | Report file exposure | `api/reports/` not served via HTTP. Download reads bytes directly in dashboard. |
 | SMTP credential exposure | `SMTP_PASS` read from env only. Never logged. |
-| Superadmin lockout | Auto-seeded at every API startup — account always exists. Emergency password reset: `cd api ; python reset_superadmin.py <new_password>` |
+| Superadmin lockout | Auto-seeded at every API startup — account always exists. Emergency password reset: `cd api ; python reset_superadmin.py` (asks for the password hidden, or `--generate`; updates `SUPERADMIN_PASSWORD` in `.env`, which the API re-applies at every start) |
 
 ### Production Checklist
 
