@@ -25,7 +25,7 @@ from models.ticket import Ticket
 from models.triage_category import TriageCategory
 from models.audit import AuditLog
 from services.ai_prompt import danger_scan  # noqa: F401 (re-exported for routes/ticket_triage.py)
-from utils.ai_client import get_anthropic_client, get_model
+from utils.ai_client import NO_FORCED_TOOL_CHOICE, get_anthropic_client, get_model, tool_choice_for
 from utils.rate_limit import check_and_increment
 from utils.usage_tracker import record_event
 
@@ -244,10 +244,10 @@ def run_triage(ticket_id: str):
         resp = client.messages.create(
             model=model,
             max_tokens=max_tokens,
-            system=system_prompt,
+            system=system_prompt + ("\n\nRespond only by calling the categorize_ticket tool." if model in NO_FORCED_TOOL_CHOICE else ""),
             messages=[{"role": "user", "content": user_content}],
             tools=[_CATEGORIZE_TOOL],
-            tool_choice={"type": "tool", "name": "categorize_ticket"},
+            tool_choice=tool_choice_for(model, "categorize_ticket"),
         )
         _usage = getattr(resp, "usage", None)
         tool_block = next((b for b in resp.content if getattr(b, "type", None) == "tool_use"), None)

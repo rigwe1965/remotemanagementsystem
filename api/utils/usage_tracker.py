@@ -11,12 +11,15 @@ from datetime import datetime, timezone, timedelta
 logger = logging.getLogger(__name__)
 
 # service -> {"input": $ per 1M input tokens, "output": $ per 1M output tokens}
-_MODEL_PRICING = {
-    os.getenv("AI_ASSISTANT_MODEL", "claude-haiku-4-5-20251001"): {
-        "input": float(os.getenv("AI_ASSISTANT_COST_PER_1M_INPUT", "1.00")),
-        "output": float(os.getenv("AI_ASSISTANT_COST_PER_1M_OUTPUT", "5.00")),
-    },
-}
+# Built from the supported-model price list so triage and chat are costed at their own model's price; the
+# AI_ASSISTANT_COST_PER_1M_* variables still override the price of the assistant's model.
+from utils.ai_client import SUPPORTED_MODELS, get_model
+
+_MODEL_PRICING = {m: {"input": p[0], "output": p[1]} for m, p in SUPPORTED_MODELS.items()}
+_assistant_model = get_model("AI_ASSISTANT_MODEL", "claude-haiku-4-5-20251001")
+_in, _out = os.getenv("AI_ASSISTANT_COST_PER_1M_INPUT", "").strip(), os.getenv("AI_ASSISTANT_COST_PER_1M_OUTPUT", "").strip()
+if _in and _out:  # an explicit override only; otherwise the model's own list price above applies
+    _MODEL_PRICING[_assistant_model] = {"input": float(_in), "output": float(_out)}
 
 _MIN_EVENTS_FOR_SIGNAL = 5  # ignore low-volume noise when computing spike multipliers
 _KNOWN_SERVICES = (
