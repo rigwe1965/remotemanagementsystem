@@ -253,6 +253,8 @@ def change_password():
     errors, msg = password_error_response(new_pw)
     if errors:
         return jsonify({"error": msg}), 400
+    if user.check_password(new_pw):
+        return jsonify({"error": "New password must be different from your current password"}), 400
 
     user.set_password(new_pw)
     user.must_change_password = False
@@ -279,6 +281,9 @@ def force_change_password():
     errors, msg = password_error_response(new_pw)
     if errors:
         return jsonify({"error": msg}), 400
+    # The temporary password is the one that must go: keeping it would leave a password someone else chose (and may have written down).
+    if user.check_password(new_pw):
+        return jsonify({"error": "New password must be different from your temporary password"}), 400
 
     user.set_password(new_pw)
     user.must_change_password = False
