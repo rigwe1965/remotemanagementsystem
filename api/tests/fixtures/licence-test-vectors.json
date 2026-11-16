@@ -1,0 +1,367 @@
+{
+  "about": "Test vectors for licensing/licence.mjs. TEST key only. Regenerate with: node licensing/make-test-vectors.mjs",
+  "publicKey": "pa28m8kHd-7Ww2Nf4quF4GThV8TEIovSxkMHdOcs7MA",
+  "verify": [
+    {
+      "name": "a genuine licence",
+      "token": "FKL1.eyJ2IjoxLCJpZCI6ImxpY190ZXN0MDAwMDAxIiwicHJvZHVjdCI6InJtbSIsImN1c3RvbWVyIjoiQWNtZSBJVCAodGVzdCkiLCJ0aWVyIjoicHJlbWl1bSIsImlhdCI6IjIwMjYtMTEtMTdUMDA6MDA6MDBaIiwiZXhwIjoiMjAyNy0xMS0zMFQyMzo1OTo1OVoiLCJsaW1pdHMiOnsiZGV2aWNlcyI6MjUwLCJ1c2VycyI6MjV9fQ.6KPK5yOE-k4P2xXlI1cHJ2m1hHBcAhvrKzbHiqrUKq8pT9aWO50o4hRCCk27ZXnPIpp3s77HGzuOiQBv3X0UBQ",
+      "product": "rmm",
+      "expect": {
+        "ok": true
+      }
+    },
+    {
+      "name": "a genuine licence, no product asked for",
+      "token": "FKL1.eyJ2IjoxLCJpZCI6ImxpY190ZXN0MDAwMDAxIiwicHJvZHVjdCI6InJtbSIsImN1c3RvbWVyIjoiQWNtZSBJVCAodGVzdCkiLCJ0aWVyIjoicHJlbWl1bSIsImlhdCI6IjIwMjYtMTEtMTdUMDA6MDA6MDBaIiwiZXhwIjoiMjAyNy0xMS0zMFQyMzo1OTo1OVoiLCJsaW1pdHMiOnsiZGV2aWNlcyI6MjUwLCJ1c2VycyI6MjV9fQ.6KPK5yOE-k4P2xXlI1cHJ2m1hHBcAhvrKzbHiqrUKq8pT9aWO50o4hRCCk27ZXnPIpp3s77HGzuOiQBv3X0UBQ",
+      "expect": {
+        "ok": true
+      }
+    },
+    {
+      "name": "wrong product",
+      "token": "FKL1.eyJ2IjoxLCJpZCI6ImxpY190ZXN0MDAwMDAxIiwicHJvZHVjdCI6InJtbSIsImN1c3RvbWVyIjoiQWNtZSBJVCAodGVzdCkiLCJ0aWVyIjoicHJlbWl1bSIsImlhdCI6IjIwMjYtMTEtMTdUMDA6MDA6MDBaIiwiZXhwIjoiMjAyNy0xMS0zMFQyMzo1OTo1OVoiLCJsaW1pdHMiOnsiZGV2aWNlcyI6MjUwLCJ1c2VycyI6MjV9fQ.6KPK5yOE-k4P2xXlI1cHJ2m1hHBcAhvrKzbHiqrUKq8pT9aWO50o4hRCCk27ZXnPIpp3s77HGzuOiQBv3X0UBQ",
+      "product": "reci",
+      "expect": {
+        "ok": false,
+        "reason": "wrong_product"
+      }
+    },
+    {
+      "name": "device limit raised after signing",
+      "token": "FKL1.eyJ2IjoxLCJpZCI6ImxpY190ZXN0MDAwMDAxIiwicHJvZHVjdCI6InJtbSIsImN1c3RvbWVyIjoiQWNtZSBJVCAodGVzdCkiLCJ0aWVyIjoicHJlbWl1bSIsImlhdCI6IjIwMjYtMTEtMTdUMDA6MDA6MDBaIiwiZXhwIjoiMjAyNy0xMS0zMFQyMzo1OTo1OVoiLCJsaW1pdHMiOnsiZGV2aWNlcyI6OTk5OSwidXNlcnMiOjI1fX0.6KPK5yOE-k4P2xXlI1cHJ2m1hHBcAhvrKzbHiqrUKq8pT9aWO50o4hRCCk27ZXnPIpp3s77HGzuOiQBv3X0UBQ",
+      "product": "rmm",
+      "expect": {
+        "ok": false,
+        "reason": "bad_signature"
+      }
+    },
+    {
+      "name": "payload corrupted",
+      "token": "FKL1.AyJ2IjoxLCJpZCI6ImxpY190ZXN0MDAwMDAxIiwicHJvZHVjdCI6InJtbSIsImN1c3RvbWVyIjoiQWNtZSBJVCAodGVzdCkiLCJ0aWVyIjoicHJlbWl1bSIsImlhdCI6IjIwMjYtMTEtMTdUMDA6MDA6MDBaIiwiZXhwIjoiMjAyNy0xMS0zMFQyMzo1OTo1OVoiLCJsaW1pdHMiOnsiZGV2aWNlcyI6MjUwLCJ1c2VycyI6MjV9fQ.6KPK5yOE-k4P2xXlI1cHJ2m1hHBcAhvrKzbHiqrUKq8pT9aWO50o4hRCCk27ZXnPIpp3s77HGzuOiQBv3X0UBQ",
+      "product": "rmm",
+      "expect": {
+        "ok": false,
+        "reason": "malformed"
+      }
+    },
+    {
+      "name": "signature changed",
+      "token": "FKL1.eyJ2IjoxLCJpZCI6ImxpY190ZXN0MDAwMDAxIiwicHJvZHVjdCI6InJtbSIsImN1c3RvbWVyIjoiQWNtZSBJVCAodGVzdCkiLCJ0aWVyIjoicHJlbWl1bSIsImlhdCI6IjIwMjYtMTEtMTdUMDA6MDA6MDBaIiwiZXhwIjoiMjAyNy0xMS0zMFQyMzo1OTo1OVoiLCJsaW1pdHMiOnsiZGV2aWNlcyI6MjUwLCJ1c2VycyI6MjV9fQ.AKPK5yOE-k4P2xXlI1cHJ2m1hHBcAhvrKzbHiqrUKq8pT9aWO50o4hRCCk27ZXnPIpp3s77HGzuOiQBv3X0UBQ",
+      "product": "rmm",
+      "expect": {
+        "ok": false,
+        "reason": "bad_signature"
+      }
+    },
+    {
+      "name": "signed by a different key",
+      "token": "FKL1.eyJ2IjoxLCJpZCI6ImxpY190ZXN0MDAwMDAxIiwicHJvZHVjdCI6InJtbSIsImN1c3RvbWVyIjoiQWNtZSBJVCAodGVzdCkiLCJ0aWVyIjoicHJlbWl1bSIsImlhdCI6IjIwMjYtMTEtMTdUMDA6MDA6MDBaIiwiZXhwIjoiMjAyNy0xMS0zMFQyMzo1OTo1OVoiLCJsaW1pdHMiOnsiZGV2aWNlcyI6MjUwfX0.Zsw_blTAYp66djWdk-rNgpe_uNVL8cUK01cCdknl3m_Cuv6lEohCwWHzCU7TXTZ086Nm4XalgeRCmYkTPtDTBA",
+      "product": "rmm",
+      "expect": {
+        "ok": false,
+        "reason": "bad_signature"
+      }
+    },
+    {
+      "name": "a newer format this product does not know",
+      "token": "FKL2.eyJ2IjoxLCJpZCI6ImxpY190ZXN0MDAwMDAxIiwicHJvZHVjdCI6InJtbSIsImN1c3RvbWVyIjoiQWNtZSBJVCAodGVzdCkiLCJ0aWVyIjoicHJlbWl1bSIsImlhdCI6IjIwMjYtMTEtMTdUMDA6MDA6MDBaIiwiZXhwIjoiMjAyNy0xMS0zMFQyMzo1OTo1OVoiLCJsaW1pdHMiOnsiZGV2aWNlcyI6MjUwLCJ1c2VycyI6MjV9fQ.6KPK5yOE-k4P2xXlI1cHJ2m1hHBcAhvrKzbHiqrUKq8pT9aWO50o4hRCCk27ZXnPIpp3s77HGzuOiQBv3X0UBQ",
+      "product": "rmm",
+      "expect": {
+        "ok": false,
+        "reason": "unsupported"
+      }
+    },
+    {
+      "name": "not a licence at all",
+      "token": "hello",
+      "product": "rmm",
+      "expect": {
+        "ok": false,
+        "reason": "malformed"
+      }
+    },
+    {
+      "name": "empty",
+      "token": "",
+      "product": "rmm",
+      "expect": {
+        "ok": false,
+        "reason": "malformed"
+      }
+    },
+    {
+      "name": "two parts only",
+      "token": "FKL1.eyJ2IjoxLCJpZCI6ImxpY190ZXN0MDAwMDAxIiwicHJvZHVjdCI6InJtbSIsImN1c3RvbWVyIjoiQWNtZSBJVCAodGVzdCkiLCJ0aWVyIjoicHJlbWl1bSIsImlhdCI6IjIwMjYtMTEtMTdUMDA6MDA6MDBaIiwiZXhwIjoiMjAyNy0xMS0zMFQyMzo1OTo1OVoiLCJsaW1pdHMiOnsiZGV2aWNlcyI6MjUwLCJ1c2VycyI6MjV9fQ",
+      "product": "rmm",
+      "expect": {
+        "ok": false,
+        "reason": "malformed"
+      }
+    }
+  ],
+  "evaluate": [
+    {
+      "name": "well before the end, under the limit",
+      "token": "FKL1.eyJ2IjoxLCJpZCI6ImxpY190ZXN0MDAwMDAxIiwicHJvZHVjdCI6InJtbSIsImN1c3RvbWVyIjoiQWNtZSBJVCAodGVzdCkiLCJ0aWVyIjoicHJlbWl1bSIsImlhdCI6IjIwMjYtMTEtMTdUMDA6MDA6MDBaIiwiZXhwIjoiMjAyNy0xMS0zMFQyMzo1OTo1OVoiLCJsaW1pdHMiOnsiZGV2aWNlcyI6MjUwLCJ1c2VycyI6MjV9fQ.6KPK5yOE-k4P2xXlI1cHJ2m1hHBcAhvrKzbHiqrUKq8pT9aWO50o4hRCCk27ZXnPIpp3s77HGzuOiQBv3X0UBQ",
+      "now": "2027-01-15T12:00:00Z",
+      "usage": {
+        "devices": 30,
+        "users": 4
+      },
+      "expect": {
+        "state": "active",
+        "daysLeft": 320,
+        "endsOn": "2027-11-30",
+        "graceEndsOn": "2027-12-30",
+        "canAdd": {
+          "devices": true,
+          "users": true
+        },
+        "over": {},
+        "banner": null
+      }
+    },
+    {
+      "name": "exactly at the limit: nothing more may be added",
+      "token": "FKL1.eyJ2IjoxLCJpZCI6ImxpY190ZXN0MDAwMDAxIiwicHJvZHVjdCI6InJtbSIsImN1c3RvbWVyIjoiQWNtZSBJVCAodGVzdCkiLCJ0aWVyIjoicHJlbWl1bSIsImlhdCI6IjIwMjYtMTEtMTdUMDA6MDA6MDBaIiwiZXhwIjoiMjAyNy0xMS0zMFQyMzo1OTo1OVoiLCJsaW1pdHMiOnsiZGV2aWNlcyI6MjUwLCJ1c2VycyI6MjV9fQ.6KPK5yOE-k4P2xXlI1cHJ2m1hHBcAhvrKzbHiqrUKq8pT9aWO50o4hRCCk27ZXnPIpp3s77HGzuOiQBv3X0UBQ",
+      "now": "2027-01-15T12:00:00Z",
+      "usage": {
+        "devices": 250,
+        "users": 4
+      },
+      "expect": {
+        "state": "active",
+        "daysLeft": 320,
+        "endsOn": "2027-11-30",
+        "graceEndsOn": "2027-12-30",
+        "canAdd": {
+          "devices": false,
+          "users": true
+        },
+        "over": {},
+        "banner": null
+      }
+    },
+    {
+      "name": "over the limit: a note, nothing switched off",
+      "token": "FKL1.eyJ2IjoxLCJpZCI6ImxpY190ZXN0MDAwMDAxIiwicHJvZHVjdCI6InJtbSIsImN1c3RvbWVyIjoiQWNtZSBJVCAodGVzdCkiLCJ0aWVyIjoicHJlbWl1bSIsImlhdCI6IjIwMjYtMTEtMTdUMDA6MDA6MDBaIiwiZXhwIjoiMjAyNy0xMS0zMFQyMzo1OTo1OVoiLCJsaW1pdHMiOnsiZGV2aWNlcyI6MjUwLCJ1c2VycyI6MjV9fQ.6KPK5yOE-k4P2xXlI1cHJ2m1hHBcAhvrKzbHiqrUKq8pT9aWO50o4hRCCk27ZXnPIpp3s77HGzuOiQBv3X0UBQ",
+      "now": "2027-01-15T12:00:00Z",
+      "usage": {
+        "devices": 262,
+        "users": 4
+      },
+      "expect": {
+        "state": "active",
+        "daysLeft": 320,
+        "endsOn": "2027-11-30",
+        "graceEndsOn": "2027-12-30",
+        "canAdd": {
+          "devices": false,
+          "users": true
+        },
+        "over": {
+          "devices": {
+            "used": 262,
+            "limit": 250
+          }
+        },
+        "banner": "You are using 262 devices; your licence covers 250."
+      }
+    },
+    {
+      "name": "31 days before the end: still quiet",
+      "token": "FKL1.eyJ2IjoxLCJpZCI6ImxpY190ZXN0MDAwMDAxIiwicHJvZHVjdCI6InJtbSIsImN1c3RvbWVyIjoiQWNtZSBJVCAodGVzdCkiLCJ0aWVyIjoicHJlbWl1bSIsImlhdCI6IjIwMjYtMTEtMTdUMDA6MDA6MDBaIiwiZXhwIjoiMjAyNy0xMS0zMFQyMzo1OTo1OVoiLCJsaW1pdHMiOnsiZGV2aWNlcyI6MjUwLCJ1c2VycyI6MjV9fQ.6KPK5yOE-k4P2xXlI1cHJ2m1hHBcAhvrKzbHiqrUKq8pT9aWO50o4hRCCk27ZXnPIpp3s77HGzuOiQBv3X0UBQ",
+      "now": "2027-10-30T00:00:00Z",
+      "usage": {
+        "devices": 10,
+        "users": 1
+      },
+      "expect": {
+        "state": "active",
+        "daysLeft": 32,
+        "endsOn": "2027-11-30",
+        "graceEndsOn": "2027-12-30",
+        "canAdd": {
+          "devices": true,
+          "users": true
+        },
+        "over": {},
+        "banner": null
+      }
+    },
+    {
+      "name": "30 days before the end: expiring",
+      "token": "FKL1.eyJ2IjoxLCJpZCI6ImxpY190ZXN0MDAwMDAxIiwicHJvZHVjdCI6InJtbSIsImN1c3RvbWVyIjoiQWNtZSBJVCAodGVzdCkiLCJ0aWVyIjoicHJlbWl1bSIsImlhdCI6IjIwMjYtMTEtMTdUMDA6MDA6MDBaIiwiZXhwIjoiMjAyNy0xMS0zMFQyMzo1OTo1OVoiLCJsaW1pdHMiOnsiZGV2aWNlcyI6MjUwLCJ1c2VycyI6MjV9fQ.6KPK5yOE-k4P2xXlI1cHJ2m1hHBcAhvrKzbHiqrUKq8pT9aWO50o4hRCCk27ZXnPIpp3s77HGzuOiQBv3X0UBQ",
+      "now": "2027-11-01T00:00:00Z",
+      "usage": {
+        "devices": 10,
+        "users": 1
+      },
+      "expect": {
+        "state": "expiring",
+        "daysLeft": 30,
+        "endsOn": "2027-11-30",
+        "graceEndsOn": "2027-12-30",
+        "canAdd": {
+          "devices": true,
+          "users": true
+        },
+        "over": {},
+        "banner": "Your licence ends on 2027-11-30. Renew it to keep adding more."
+      }
+    },
+    {
+      "name": "the day after the end: grace, adding still works",
+      "token": "FKL1.eyJ2IjoxLCJpZCI6ImxpY190ZXN0MDAwMDAxIiwicHJvZHVjdCI6InJtbSIsImN1c3RvbWVyIjoiQWNtZSBJVCAodGVzdCkiLCJ0aWVyIjoicHJlbWl1bSIsImlhdCI6IjIwMjYtMTEtMTdUMDA6MDA6MDBaIiwiZXhwIjoiMjAyNy0xMS0zMFQyMzo1OTo1OVoiLCJsaW1pdHMiOnsiZGV2aWNlcyI6MjUwLCJ1c2VycyI6MjV9fQ.6KPK5yOE-k4P2xXlI1cHJ2m1hHBcAhvrKzbHiqrUKq8pT9aWO50o4hRCCk27ZXnPIpp3s77HGzuOiQBv3X0UBQ",
+      "now": "2027-12-01T08:00:00Z",
+      "usage": {
+        "devices": 10,
+        "users": 1
+      },
+      "expect": {
+        "state": "grace",
+        "daysLeft": 0,
+        "endsOn": "2027-11-30",
+        "graceEndsOn": "2027-12-30",
+        "canAdd": {
+          "devices": true,
+          "users": true
+        },
+        "over": {},
+        "banner": "Your licence ended on 2027-11-30. You can keep adding until 2027-12-30; renew it to continue after that."
+      }
+    },
+    {
+      "name": "last day of grace",
+      "token": "FKL1.eyJ2IjoxLCJpZCI6ImxpY190ZXN0MDAwMDAxIiwicHJvZHVjdCI6InJtbSIsImN1c3RvbWVyIjoiQWNtZSBJVCAodGVzdCkiLCJ0aWVyIjoicHJlbWl1bSIsImlhdCI6IjIwMjYtMTEtMTdUMDA6MDA6MDBaIiwiZXhwIjoiMjAyNy0xMS0zMFQyMzo1OTo1OVoiLCJsaW1pdHMiOnsiZGV2aWNlcyI6MjUwLCJ1c2VycyI6MjV9fQ.6KPK5yOE-k4P2xXlI1cHJ2m1hHBcAhvrKzbHiqrUKq8pT9aWO50o4hRCCk27ZXnPIpp3s77HGzuOiQBv3X0UBQ",
+      "now": "2027-12-30T23:00:00Z",
+      "usage": {
+        "devices": 10,
+        "users": 1
+      },
+      "expect": {
+        "state": "grace",
+        "daysLeft": -29,
+        "endsOn": "2027-11-30",
+        "graceEndsOn": "2027-12-30",
+        "canAdd": {
+          "devices": true,
+          "users": true
+        },
+        "over": {},
+        "banner": "Your licence ended on 2027-11-30. You can keep adding until 2027-12-30; renew it to continue after that."
+      }
+    },
+    {
+      "name": "after grace: lapsed, nothing may be added",
+      "token": "FKL1.eyJ2IjoxLCJpZCI6ImxpY190ZXN0MDAwMDAxIiwicHJvZHVjdCI6InJtbSIsImN1c3RvbWVyIjoiQWNtZSBJVCAodGVzdCkiLCJ0aWVyIjoicHJlbWl1bSIsImlhdCI6IjIwMjYtMTEtMTdUMDA6MDA6MDBaIiwiZXhwIjoiMjAyNy0xMS0zMFQyMzo1OTo1OVoiLCJsaW1pdHMiOnsiZGV2aWNlcyI6MjUwLCJ1c2VycyI6MjV9fQ.6KPK5yOE-k4P2xXlI1cHJ2m1hHBcAhvrKzbHiqrUKq8pT9aWO50o4hRCCk27ZXnPIpp3s77HGzuOiQBv3X0UBQ",
+      "now": "2027-12-31T00:00:00Z",
+      "usage": {
+        "devices": 10,
+        "users": 1
+      },
+      "expect": {
+        "state": "lapsed",
+        "daysLeft": -30,
+        "endsOn": "2027-11-30",
+        "graceEndsOn": "2027-12-30",
+        "canAdd": {
+          "devices": false,
+          "users": false
+        },
+        "over": {},
+        "banner": "Your licence ended on 2027-11-30. Everything you have keeps working, but you cannot add more until it is renewed."
+      }
+    },
+    {
+      "name": "lapsed and over the limit",
+      "token": "FKL1.eyJ2IjoxLCJpZCI6ImxpY190ZXN0MDAwMDAxIiwicHJvZHVjdCI6InJtbSIsImN1c3RvbWVyIjoiQWNtZSBJVCAodGVzdCkiLCJ0aWVyIjoicHJlbWl1bSIsImlhdCI6IjIwMjYtMTEtMTdUMDA6MDA6MDBaIiwiZXhwIjoiMjAyNy0xMS0zMFQyMzo1OTo1OVoiLCJsaW1pdHMiOnsiZGV2aWNlcyI6MjUwLCJ1c2VycyI6MjV9fQ.6KPK5yOE-k4P2xXlI1cHJ2m1hHBcAhvrKzbHiqrUKq8pT9aWO50o4hRCCk27ZXnPIpp3s77HGzuOiQBv3X0UBQ",
+      "now": "2028-03-01T00:00:00Z",
+      "usage": {
+        "devices": 300,
+        "users": 30
+      },
+      "expect": {
+        "state": "lapsed",
+        "daysLeft": -91,
+        "endsOn": "2027-11-30",
+        "graceEndsOn": "2027-12-30",
+        "canAdd": {
+          "devices": false,
+          "users": false
+        },
+        "over": {
+          "devices": {
+            "used": 300,
+            "limit": 250
+          },
+          "users": {
+            "used": 30,
+            "limit": 25
+          }
+        },
+        "banner": "Your licence ended on 2027-11-30. Everything you have keeps working, but you cannot add more until it is renewed. You are using 300 devices; your licence covers 250. You are using 30 users; your licence covers 25."
+      }
+    },
+    {
+      "name": "unlimited tier, large use",
+      "token": "FKL1.eyJ2IjoxLCJpZCI6ImxpY190ZXN0MDAwMDAyIiwicHJvZHVjdCI6InJtbSIsImN1c3RvbWVyIjoiQWNtZSBJVCAodGVzdCkiLCJ0aWVyIjoiZW50ZXJwcmlzZSIsImlhdCI6IjIwMjYtMTEtMTdUMDA6MDA6MDBaIiwiZXhwIjoiMjAyNy0xMS0zMFQyMzo1OTo1OVoiLCJsaW1pdHMiOnsiZGV2aWNlcyI6bnVsbCwidXNlcnMiOm51bGx9fQ._etyMUSFkNkwjRarrLLmnagIDHfn2QYqOF5rG7BH2D8OQv_zjnx3sA5e8U0l-wbb2tQlaM625I6PE5KXuumlCw",
+      "now": "2027-03-01T00:00:00Z",
+      "usage": {
+        "devices": 5000,
+        "users": 900
+      },
+      "expect": {
+        "state": "active",
+        "daysLeft": 275,
+        "endsOn": "2027-11-30",
+        "graceEndsOn": "2027-12-30",
+        "canAdd": {
+          "devices": true,
+          "users": true
+        },
+        "over": {},
+        "banner": null
+      }
+    },
+    {
+      "name": "unlimited tier, lapsed",
+      "token": "FKL1.eyJ2IjoxLCJpZCI6ImxpY190ZXN0MDAwMDAyIiwicHJvZHVjdCI6InJtbSIsImN1c3RvbWVyIjoiQWNtZSBJVCAodGVzdCkiLCJ0aWVyIjoiZW50ZXJwcmlzZSIsImlhdCI6IjIwMjYtMTEtMTdUMDA6MDA6MDBaIiwiZXhwIjoiMjAyNy0xMS0zMFQyMzo1OTo1OVoiLCJsaW1pdHMiOnsiZGV2aWNlcyI6bnVsbCwidXNlcnMiOm51bGx9fQ._etyMUSFkNkwjRarrLLmnagIDHfn2QYqOF5rG7BH2D8OQv_zjnx3sA5e8U0l-wbb2tQlaM625I6PE5KXuumlCw",
+      "now": "2028-06-01T00:00:00Z",
+      "usage": {
+        "devices": 5000,
+        "users": 900
+      },
+      "expect": {
+        "state": "lapsed",
+        "daysLeft": -183,
+        "endsOn": "2027-11-30",
+        "graceEndsOn": "2027-12-30",
+        "canAdd": {
+          "devices": false,
+          "users": false
+        },
+        "over": {},
+        "banner": "Your licence ended on 2027-11-30. Everything you have keeps working, but you cannot add more until it is renewed."
+      }
+    },
+    {
+      "name": "usage not reported counts as none",
+      "token": "FKL1.eyJ2IjoxLCJpZCI6ImxpY190ZXN0MDAwMDAxIiwicHJvZHVjdCI6InJtbSIsImN1c3RvbWVyIjoiQWNtZSBJVCAodGVzdCkiLCJ0aWVyIjoicHJlbWl1bSIsImlhdCI6IjIwMjYtMTEtMTdUMDA6MDA6MDBaIiwiZXhwIjoiMjAyNy0xMS0zMFQyMzo1OTo1OVoiLCJsaW1pdHMiOnsiZGV2aWNlcyI6MjUwLCJ1c2VycyI6MjV9fQ.6KPK5yOE-k4P2xXlI1cHJ2m1hHBcAhvrKzbHiqrUKq8pT9aWO50o4hRCCk27ZXnPIpp3s77HGzuOiQBv3X0UBQ",
+      "now": "2027-03-01T00:00:00Z",
+      "usage": {},
+      "expect": {
+        "state": "active",
+        "daysLeft": 275,
+        "endsOn": "2027-11-30",
+        "graceEndsOn": "2027-12-30",
+        "canAdd": {
+          "devices": true,
+          "users": true
+        },
+        "over": {},
+        "banner": null
+      }
+    }
+  ]
+}

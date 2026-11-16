@@ -232,6 +232,7 @@ def create_app(config_name=None):
     from routes.psa import psa_bp
     from routes.mobile_mdm import mobile_mdm_bp
     from routes.usage import usage_bp
+    from routes.licence import licence_bp
     from routes.ticket_triage import ticket_triage_bp, _triage_categories_bp
 
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
@@ -259,6 +260,7 @@ def create_app(config_name=None):
     app.register_blueprint(psa_bp, url_prefix="/api/psa")
     app.register_blueprint(mobile_mdm_bp, url_prefix="/api/mdm")
     app.register_blueprint(usage_bp, url_prefix="/api/admin/usage")
+    app.register_blueprint(licence_bp, url_prefix="/api/admin/licence")
     app.register_blueprint(ticket_triage_bp, url_prefix="/api/tickets")
     app.register_blueprint(_triage_categories_bp, url_prefix="/api/triage/categories")
 
