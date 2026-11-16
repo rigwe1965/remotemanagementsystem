@@ -101,6 +101,23 @@ def test_rotation_second_key_works(issuer):
     assert licence.verify(issuer.token(), [other.public])["reason"] == "bad_signature"
 
 
+# ── The owner's built-in key ──────────────────────────────────────────────────────────────────────────────────────────────────
+
+def test_the_built_in_owner_key_is_a_real_ed25519_public_key():
+    from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+    assert len(licence.BUILT_IN_PUBLIC_KEYS) >= 1
+    for raw in licence.BUILT_IN_PUBLIC_KEYS:
+        assert len(licence._b64u(raw)) == 32
+        Ed25519PublicKey.from_public_bytes(licence._b64u(raw))  # raises if it is not a valid key
+
+
+def test_without_extra_keys_only_the_built_in_key_is_trusted(monkeypatch, issuer):
+    monkeypatch.delenv("LICENCE_PUBLIC_KEYS", raising=False)
+    assert licence.public_keys() == list(licence.BUILT_IN_PUBLIC_KEYS)
+    # a licence signed by anyone else (here the test issuer) is not accepted by the product as shipped
+    assert licence.verify(issuer.token(), licence.public_keys(), "rmm")["reason"] == "bad_signature"
+
+
 # ── Off by default ──────────────────────────────────────────────────────────────────────────────────────────────────────────
 
 def test_nothing_is_checked_unless_enforcement_is_on(app, issuer):

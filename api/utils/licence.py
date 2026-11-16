@@ -44,9 +44,10 @@ PRODUCT = "rmm"
 GRACE_DAYS = 30
 EXPIRY_WARNING_DAYS = 30
 
-# The owner's public key (printed by ``node licensing/cli.mjs keygen``) goes here. Empty until the owner has made a key; until
-# then only LICENCE_PUBLIC_KEYS can supply one, and with enforcement off none is needed.
-BUILT_IN_PUBLIC_KEYS: tuple = ()
+# The owner's public key, printed by ``node licensing/cli.mjs keygen`` (made 2026-11-16). It can only CHECK licences, never make
+# them, so it is safe to publish. A second key can be added to this tuple later to rotate keys without breaking licences already
+# issued; never remove the first one while licences signed by it are still in use.
+BUILT_IN_PUBLIC_KEYS: tuple = ("YgAlykUDmOaANaYUOgaOA4-2bFR8gTf-Y8mkPwTqRzU",)
 
 _STAFF_ROLES = ("admin", "technician", "viewer")  # counted against the user limit; client portal users and the superadmin are not
 
