@@ -409,4 +409,6 @@ if __name__ == "__main__":
     else:
         from waitress import serve
         print(f" * Serving on http://{host}:{port} (waitress)")
-        serve(app, host=host, port=port, threads=16)
+        from utils.client_ip import waitress_options
+        # Waitress drops X-Forwarded-For unless told otherwise, which would make TRUSTED_PROXY_COUNT a no-op (utils/client_ip.py).
+        serve(app, host=host, port=port, threads=16, **waitress_options())

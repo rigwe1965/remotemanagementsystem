@@ -35,3 +35,14 @@ def apply_proxy_fix(app, count=None):
     if n > 0:
         app.wsgi_app = ProxyFix(app.wsgi_app, x_for=n, x_proto=0, x_host=0, x_port=0, x_prefix=0)
     return app
+
+
+def waitress_options(count=None) -> dict:
+    """Extra ``waitress.serve`` options so the visitor address reaches ``apply_proxy_fix``.
+
+    Waitress deletes every ``X-Forwarded-*`` header it was not told to trust, so with the default settings ProxyFix never sees
+    the visitor and ``request.remote_addr`` stays the proxy's address even when ``TRUSTED_PROXY_COUNT`` is set. When a proxy count
+    is configured we keep the headers and let ProxyFix take exactly that many entries from the right (a client cannot add more).
+    With the default count of 0 nothing changes and Waitress keeps discarding them."""
+    n = trusted_proxy_count() if count is None else count
+    return {"clear_untrusted_proxy_headers": False} if n > 0 else {}
