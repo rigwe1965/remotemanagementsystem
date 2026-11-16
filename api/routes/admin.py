@@ -7,6 +7,7 @@ from extensions import db, limiter
 from models.user import User
 from models.department import Department
 from models.audit import AuditLog
+from utils import login_guard
 from utils.password import password_error_response
 from utils.validation import validate_body
 from utils.pagination import paginated_response
@@ -227,6 +228,7 @@ def unlock_user(user_id):
     user.is_locked = False
     user.locked_until = None
     user.failed_login_attempts = 0
+    login_guard.record_unlock(user.id, request.remote_addr)  # also clears the per-address counts
     _audit("UNLOCK", admin.id, resource_id=user_id, payload={"email": user.email})
     db.session.commit()
     return jsonify({"message": "Account unlocked", "user": user.to_dict()})

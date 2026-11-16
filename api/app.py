@@ -55,6 +55,11 @@ def create_app(config_name=None):
     app = Flask(__name__)
     app.config.from_object(config_map.get(config_name, config_map["default"]))
 
+    # Behind a reverse proxy, use the visitor's address (TRUSTED_PROXY_COUNT, default 0 = unchanged) so rate limits, the audit log
+    # and the sign-in lockout work per person instead of per proxy. See utils/client_ip.py.
+    from utils.client_ip import apply_proxy_fix
+    apply_proxy_fix(app)
+
     # Extensions
     db.init_app(app)
     migrate.init_app(app, db)

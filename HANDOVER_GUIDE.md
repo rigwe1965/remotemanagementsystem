@@ -956,18 +956,22 @@ Sarah is a new junior technician. It is her first day.
 
 ### Account Lockout — What Happens When Too Many Failed Attempts Occur
 
-The system automatically locks an account after **3 consecutive failed login attempts**. This protects against password-guessing attacks.
+The system locks a **sign-in address** out of an account after **3 consecutive failed attempts from that address** (wrong password, or wrong two-step code). This protects against password-guessing attacks without letting a stranger lock the real user out: someone who keeps guessing wrongly is locked out themselves, while you can still sign in from your own computer.
 
 **What you will see:**
 
-- On the 3rd failed attempt, the login page shows a red error message:
+- On the 3rd failed attempt from the same address, the login page shows a red error message:
   `"Account locked. Try again after HH:MM:SS"` — the remaining lockout time is displayed.
-- The lockout lasts **5 minutes** from the last failed attempt.
-- After 5 minutes, the lockout clears automatically. Try logging in again normally.
-- If your account is locked, contact your system administrator. They can unlock it immediately from the Admin panel without waiting for the 5 minutes to expire.
-- All admin users receive an email notification when any account is locked, so administrators are alerted even if you do not contact them.
+- The lockout lasts **5 minutes** from the last of those failed attempts, and applies only to that address.
+- After 5 minutes, the lockout clears automatically. Try logging in again normally. A successful sign-in from an address clears its count straight away.
+- If you are locked, contact your system administrator. They can unlock the account immediately from the Admin panel (this clears the count for every address) without waiting for the 5 minutes to expire.
+- Guessing spread over many addresses is slowed too: after 30 failures within 15 minutes from addresses that account has never signed in from, those unfamiliar addresses are locked. Addresses the account has signed in from before are not affected.
+- All admin users receive an email notification when an address is locked out of an account.
+- Older accounts that an earlier version locked as a whole are still honoured until their lockout ends or an admin unlocks them.
 
-> **NOTE:** The superadmin account is exempt from the lockout policy and can never be locked out.
+> **NOTE:** The superadmin account follows the same per-address rule. It cannot be locked out by strangers, but a person who guesses wrongly 3 times is locked out for 5 minutes like anyone else.
+
+> **NOTE (installation):** "Address" means the visitor's real address. When the system runs behind a reverse proxy (nginx for the React app, or the Streamlit dashboard), set `TRUSTED_PROXY_COUNT` for the API and `DASHBOARD_TRUSTED_PROXY_COUNT` for the dashboard (see `.env.example`); without them every visitor looks like the proxy, so the lockout and the rate limit behave as one shared limit for everybody.
 
 > **NOTE:** The login page is rate-limited: a maximum of 10 login attempts per minute per IP address is enforced, regardless of which account is being targeted.
 
@@ -2560,7 +2564,7 @@ When a user is locked out, an administrator can unlock them immediately without 
 4. The account is immediately unlocked. The failed attempt counter is reset to zero.
 5. Notify the user they can now log in.
 
-> **NOTE:** The lockout also clears automatically after 5 minutes without any admin action. Admin unlock is only needed if the user cannot wait.
+> **NOTE:** The lockout also clears automatically 5 minutes after the last failed attempt, without any admin action. Admin unlock is only needed if the user cannot wait.
 
 #### Step-by-step: Deactivating a Departed Employee
 

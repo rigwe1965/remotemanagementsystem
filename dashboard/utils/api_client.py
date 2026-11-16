@@ -12,6 +12,8 @@ from typing import Optional, Tuple, Any
 import logging as _logging
 _log = _logging.getLogger(__name__)
 
+from utils.client_ip import forward_headers
+
 API_BASE = os.getenv("API_BASE_URL", "http://localhost:5000")
 
 # Warn if connecting to non-HTTPS API in a non-localhost environment
@@ -131,6 +133,7 @@ class RMMClient:
             resp = requests.post(
                 f"{API_BASE}/api/auth/login",
                 json={"email": email, "password": password},
+                headers=forward_headers(),
                 timeout=15,
             )
             if resp.status_code == 423:
@@ -148,6 +151,7 @@ class RMMClient:
             resp = requests.post(
                 f"{API_BASE}/api/auth/password-reset/request",
                 json={"email": email},
+                headers=forward_headers(),
                 timeout=15,
             )
             resp.raise_for_status()
@@ -224,6 +228,7 @@ class RMMClient:
             resp = requests.post(
                 f"{API_BASE}/api/auth/mfa/login",
                 json={"mfa_token": mfa_token, "code": code},
+                headers=forward_headers(),
                 timeout=15,
             )
             resp.raise_for_status()
