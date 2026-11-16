@@ -7,6 +7,7 @@ from extensions import db, limiter
 from models.device import Device, DeviceMetrics
 from models.user import User
 from models.customer import Customer
+from utils.licence import check_can_add
 from utils.validation import validate_body
 from utils.cache import cache_get_raw, cache_set_raw, cache_delete_pattern
 from utils.auth_decorators import require_role as _require_role
@@ -137,6 +138,10 @@ def create_device():
         existing = Device.query.filter_by(ip_address=ip_address).first()
     if existing:
         return jsonify({"error": "A device already exists with that MAC/IP address"}), 409
+
+    blocked = check_can_add("devices")
+    if blocked:
+        return blocked
 
     device = Device(
         hostname=hostname,

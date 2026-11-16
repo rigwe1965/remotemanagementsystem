@@ -13,6 +13,7 @@ from extensions import db, limiter
 from models.device import Device, DeviceMetrics, InstalledSoftware
 from models.audit import AgentToken
 from models.customer import Customer
+from utils.licence import check_can_add
 from utils.validation import validate_body
 from schemas.agents import (
     AgentRegisterSchema, AgentHeartbeatSchema, AgentTaskResultSchema,
@@ -100,6 +101,11 @@ def register():
             customer = Customer.query.filter_by(is_active=True).first()
             if not customer:
                 return jsonify({"error": "No active customer found. Create a customer first."}), 400
+
+        # Only a NEW device counts against the licence; a device that is already registered (above) always gets through.
+        blocked = check_can_add("devices")
+        if blocked:
+            return blocked
 
         device = Device(
             customer_id=customer.id,

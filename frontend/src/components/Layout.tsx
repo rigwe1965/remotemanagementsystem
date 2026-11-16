@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import AiAssistant from './AiAssistant';
+import LicenceBanner from './LicenceBanner';
 
 interface NavItem { to: string; label: string; icon: React.ReactNode; roles?: string[] }
 
@@ -116,6 +117,7 @@ export default function Layout() {
 
       {/* Main content */}
       <main className="flex-1 overflow-y-auto">
+        <LicenceBanner />
         <Outlet />
       </main>
 
