@@ -862,7 +862,7 @@ def to_dict(self):
 
 **Files:**
 - `api/utils/superadmin.py` — `ensure_superadmin()`: queries for an existing `superadmin` role user; creates one if absent using `SUPERADMIN_EMAIL`/`SUPERADMIN_PASSWORD` env vars (defaults: `superadmin@rmm.local` / `SuperAdmin@RMM1`). Called from `create_app()` in `api/app.py`.
-- `api/reset_superadmin.py` — CLI: `python reset_superadmin.py <new_password>` (min 10 chars). Resets password without a JWT token. Use when locked out of all admin accounts.
+- `api/reset_superadmin.py` — CLI: `python reset_superadmin.py` (asks for the new password twice, hidden; `--generate` for a random one; never takes it as an argument). Resets password, unlocks, ends sessions and updates `SUPERADMIN_PASSWORD` in `.env` (the API re-syncs the superadmin to it at every start). No JWT needed. Use when locked out of all admin accounts.
 - `api/routes/admin.py` — PUT and DELETE endpoints return 403 `"Cannot modify superadmin account"` if target user has role `superadmin`.
 - All 9 route files — `_require_role()` helper has superadmin bypass: `if claims.get("role") == "superadmin": return None`
 - `dashboard/pages/10_Admin.py` — role guard changed to `role not in ("admin", "superadmin")`; superadmin row in Users tab shows "Protected — use CLI" instead of Edit/Delete buttons; `ROLE_COLORS` includes `"superadmin": "#7C3AED"`.
@@ -877,7 +877,7 @@ SUPERADMIN_PASSWORD=SuperAdmin@RMM1
 **Emergency recovery:**
 ```bash
 cd api
-python reset_superadmin.py <new_password>
+python reset_superadmin.py
 ```
 
 ---
@@ -1225,7 +1225,7 @@ Change password after first login.
 - [ ] No `FLASK_DEBUG=1` in production
 - [ ] `SMTP_PASS` is an app-specific password, not your Gmail password
 - [ ] `api/reports/` directory not exposed via HTTP
-- [ ] Superadmin default password changed (see Admin → Users or run `cd api ; python reset_superadmin.py <new_password>`)
+- [ ] Superadmin default password changed (see Admin → Users or run `cd api ; python reset_superadmin.py`)
 
 ---
 

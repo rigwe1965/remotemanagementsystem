@@ -2836,9 +2836,10 @@ If you cannot log in as superadmin and need to reset the password without a web 
    ```
 3. Run the reset tool:
    ```powershell
-   python reset_superadmin.py YourNewPassword123
+   python reset_superadmin.py
    ```
-   The password must be at least 10 characters. The tool confirms success and the new password takes effect immediately — no restart required.
+   The tool asks for the new password twice (nothing is shown as you type; at least 10 characters with an uppercase letter, a number and a special character). To get a strong random password instead, run `python reset_superadmin.py --generate`. The password is never typed on the command line, so it does not stay in your shell history.
+   The tool ends the superadmin's existing sessions, unlocks the account, and updates `SUPERADMIN_PASSWORD` in the `.env` file the API reads, because **the API sets the superadmin's password back to `SUPERADMIN_PASSWORD` every time it starts**. The new password takes effect immediately — no restart required. If the API takes its settings from somewhere other than a `.env` file (Docker, a service manager), the tool says so: change `SUPERADMIN_PASSWORD` there too, or the next restart undoes the reset.
 
 > **WARNING:** Keep the superadmin password in a secure password manager or sealed physical document. It is your last line of defence if all other admin access is lost.
 
@@ -4916,9 +4917,9 @@ Two user types: `AgentUser` (register + heartbeat loop, ~30s wait) and `Dashboar
 ```powershell
 Set-Location C:\RMM\RemoteManagementSystem\api
 .\venv\Scripts\Activate.ps1
-python reset_superadmin.py YourNewPassword123
+python reset_superadmin.py
 ```
-Password must be at least 10 characters. No API restart needed.
+The tool asks for the new password twice (hidden; at least 10 characters with an uppercase letter, a number and a special character), or run it with `--generate` for a random one. It also updates `SUPERADMIN_PASSWORD` in `.env` (the API resets the superadmin to that setting at every start). No API restart needed.
 
 **Step 3 — Log in to the dashboard:**
 - URL: http://localhost:8501
