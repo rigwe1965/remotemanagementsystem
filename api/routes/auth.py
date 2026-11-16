@@ -17,6 +17,7 @@ from utils.notifications import (
     send_login_anomaly_alert,
 )
 from utils.password import password_error_response
+from utils import login_guard
 from utils.validation import validate_body
 from schemas.auth import (
     LoginSchema, ChangePasswordSchema, ForceChangePasswordSchema,
@@ -120,7 +121,7 @@ def login():
             user.failed_login_attempts = 0
             db.session.commit()
 
-    # Reject if account still locked
+    # Reject if the account is still locked by the old whole-account flag (set by older versions)
     if user.is_locked:
         _audit("login_blocked_locked", user_id=user.id, payload={"email": email})
         db.session.commit()
@@ -129,13 +130,21 @@ def login():
             "locked_until": user.locked_until.isoformat() if user.locked_until else None,
         }), 423
 
+    # Lockout is per address (see utils/login_guard.py): a stranger's wrong guesses lock out THEIR address, not the real user.
+    client_ip = request.remote_addr or ""
+    until = login_guard.locked_until(user, client_ip)
+    if until:
+        _audit("login_blocked_locked", user_id=user.id, payload={"email": email})
+        db.session.commit()
+        return jsonify({"error": "account_locked", "locked_until": until.isoformat()}), 423
+
     if not user.check_password(password):
         _audit("login_failed", user_id=user.id, payload={"email": email})
         user.failed_login_attempts += 1
-        if user.failed_login_attempts >= 3:
-            user.is_locked = True
-            user.locked_until = datetime.now(timezone.utc) + timedelta(minutes=5)
-            db.session.commit()
+        db.session.flush()  # the guard counts failures from the audit log, including this one
+        until = login_guard.locked_until(user, client_ip)
+        db.session.commit()
+        if until:
             admin_emails = [
                 u.email for u in User.query.filter(
                     User.role.in_(["admin", "superadmin"]), User.is_active == True,
@@ -143,11 +152,7 @@ def login():
                 ).all()
             ]
             send_account_locked_email(user.email, admin_emails)
-            return jsonify({
-                "error": "account_locked",
-                "locked_until": user.locked_until.isoformat(),
-            }), 423
-        db.session.commit()
+            return jsonify({"error": "account_locked", "locked_until": until.isoformat()}), 423
         return jsonify({"error": "Invalid credentials"}), 401
 
     # Successful login — reset lockout state
@@ -368,10 +373,19 @@ def mfa_login():
     if not user or not user.is_active or not user.mfa_secret:
         return jsonify({"error": "User not found or MFA not configured"}), 401
 
+    client_ip = request.remote_addr or ""
+    until = login_guard.locked_until(user, client_ip)
+    if until:
+        return jsonify({"error": "account_locked", "locked_until": until.isoformat()}), 423
+
     totp = pyotp.TOTP(user.get_mfa_secret())
     if not totp.verify(code, valid_window=1):
         _audit("mfa_failed", user_id=user.id)
+        db.session.flush()
+        until = login_guard.locked_until(user, client_ip)
         db.session.commit()
+        if until:
+            return jsonify({"error": "account_locked", "locked_until": until.isoformat()}), 423
         return jsonify({"error": "Invalid or expired TOTP code"}), 401
 
     user.last_login = datetime.now(timezone.utc)
@@ -551,6 +565,7 @@ def password_reset_confirm():
     user.is_locked = False
     user.locked_until = None
     user.failed_login_attempts = 0
+    login_guard.record_unlock(user.id, request.remote_addr)
     _audit("password_reset_completed", user_id=user.id)
     db.session.commit()
     return jsonify({"message": "Password reset successful. You can now log in."}), 200
