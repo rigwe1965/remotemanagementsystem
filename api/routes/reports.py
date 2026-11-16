@@ -1,8 +1,13 @@
-from flask import Blueprint, request, jsonify
+import logging
+import os
+
+from flask import Blueprint, request, jsonify, current_app
 from utils.auth_decorators import require_role as _require_role
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 from extensions import db
 from models.report import Report
+
+logger = logging.getLogger(__name__)
 
 reports_bp = Blueprint("reports", __name__)
 
@@ -70,6 +75,18 @@ def generate_report():
     db.session.add(report)
     db.session.commit()
     from tasks.report_tasks import generate_report as gen_task
+    if os.getenv("REPORTS_INLINE", "").strip().lower() in ("1", "true", "yes"):
+        # No Celery worker (the hosted demo): build the report now, inside this request, on the app that is serving it.
+        # Off by default; with a worker, leave it off and reports are built in the background as before.
+        from tasks import _app_singleton
+        if _app_singleton._app is None:
+            _app_singleton._app = current_app._get_current_object()
+        try:
+            gen_task(report.id)
+        except Exception:
+            logger.exception("inline report generation failed for report %s", report.id)
+            return jsonify({"error": "Report generation failed", "report_id": report.id}), 500
+        return jsonify({"message": "Report generated", "report_id": report.id}), 202
     gen_task.delay(report.id)
     return jsonify({"message": "Report queued", "report_id": report.id}), 202
 
