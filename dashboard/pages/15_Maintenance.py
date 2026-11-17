@@ -4,6 +4,7 @@ import streamlit as st
 from utils.auth import require_auth
 from utils.nav import render_sidebar
 from utils.ai_assistant import render_ai_assistant
+from utils.demo import is_simulated, demo_note
 from utils.styles import inject_css, badge, BRAND, stat_card
 from utils.formatters import fmt_datetime, fmt_bytes
 from utils.sanitize import esc
@@ -127,6 +128,8 @@ with r2c3:
 if reboot_btn:
     if not confirm_checked:
         st.warning("Check the confirmation box above before rebooting.")
+    elif is_simulated(selected):
+        st.info(demo_note("reboot"))
     else:
         with st.spinner(f"Sending reboot command to {selected['hostname']}..."):
             _, action_err = client.reboot_device(selected["id"])
@@ -139,6 +142,8 @@ if reboot_btn:
 if shutdown_btn:
     if not confirm_checked:
         st.warning("Check the confirmation box above before shutting down.")
+    elif is_simulated(selected):
+        st.info(demo_note("shut down"))
     else:
         with st.spinner(f"Sending shutdown command to {selected['hostname']}..."):
             _, action_err = client.shutdown_device(selected["id"])
@@ -151,6 +156,9 @@ if shutdown_btn:
 def _queue(task_type: str, label: str):
     if not confirm_checked:
         st.warning("Check the confirmation box above before running this action.")
+        return
+    if is_simulated(selected):
+        st.info(demo_note(f"run \"{label}\""))
         return
     with st.spinner(f"Queuing {label}..."):
         _, err = client.queue_device_task(selected["id"], task_type)
