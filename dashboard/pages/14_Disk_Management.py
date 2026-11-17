@@ -5,6 +5,7 @@ import plotly.graph_objects as go
 from utils.auth import require_auth
 from utils.nav import render_sidebar
 from utils.ai_assistant import render_ai_assistant
+from utils.demo import is_simulated, demo_note
 from utils.styles import inject_css, badge, BRAND, stat_card
 from utils.formatters import fmt_datetime, fmt_bytes
 from utils.sanitize import esc
@@ -175,30 +176,40 @@ else:
         unsafe_allow_html=True
     )
 
+    simulated = is_simulated(selected_device)   # hosted-demo device: no agent exists to run these
     act1, act2, act3 = st.columns(3)
     with act1:
         if st.button("Defragment", icon=":material/settings:", width='stretch'):
-            with st.spinner("Queuing defragment..."):
-                _, err = client.queue_device_task(selected_device["id"], "defrag", timeout=1800)
-            if err:
-                st.error(f"Failed to queue: {err}")
+            if simulated:
+                st.info(demo_note("defragment the disk"))
             else:
-                st.success("Defragment queued. Agent will execute on next poll.")
+                with st.spinner("Queuing defragment..."):
+                    _, err = client.queue_device_task(selected_device["id"], "defrag", timeout=1800)
+                if err:
+                    st.error(f"Failed to queue: {err}")
+                else:
+                    st.success("Defragment queued. Agent will execute on next poll.")
     with act2:
         if st.button("Check Disk", icon=":material/health_and_safety:", width='stretch'):
-            with st.spinner("Queuing chkdsk..."):
-                _, err = client.queue_device_task(selected_device["id"], "check_disk")
-            if err:
-                st.error(f"Failed to queue: {err}")
+            if simulated:
+                st.info(demo_note("check the disk"))
             else:
-                st.success("Check Disk (chkdsk) queued. Agent will execute on next poll.")
+                with st.spinner("Queuing chkdsk..."):
+                    _, err = client.queue_device_task(selected_device["id"], "check_disk")
+                if err:
+                    st.error(f"Failed to queue: {err}")
+                else:
+                    st.success("Check Disk (chkdsk) queued. Agent will execute on next poll.")
     with act3:
         if st.button("Clean Temp Files", icon=":material/delete_sweep:", width='stretch'):
-            with st.spinner("Queuing cleanup..."):
-                _, err = client.queue_device_task(selected_device["id"], "clean_temp")
-            if err:
-                st.error(f"Failed to queue: {err}")
+            if simulated:
+                st.info(demo_note("clean temporary files"))
             else:
-                st.success("Temp file cleanup queued. Agent will execute on next poll.")
+                with st.spinner("Queuing cleanup..."):
+                    _, err = client.queue_device_task(selected_device["id"], "clean_temp")
+                if err:
+                    st.error(f"Failed to queue: {err}")
+                else:
+                    st.success("Temp file cleanup queued. Agent will execute on next poll.")
 
 render_ai_assistant("Disk Management", {"context": "navigation_only"})

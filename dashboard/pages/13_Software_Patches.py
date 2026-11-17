@@ -16,6 +16,7 @@ def _clean(text: str) -> str:
 from utils.auth import require_auth
 from utils.nav import render_sidebar
 from utils.ai_assistant import render_ai_assistant
+from utils.demo import is_simulated, demo_note
 from utils.styles import inject_css, badge, BRAND, stat_card
 from utils.formatters import fmt_datetime, fmt_bytes
 from utils.sanitize import esc
@@ -91,7 +92,7 @@ with left_col:
     if st.button("Check for Updates", icon=":material/refresh:", width='stretch'):
         if not selected_device:
             st.warning("Select a device first.")
-        elif selected_device.get("agent_version") == "demo-simulated":
+        elif is_simulated(selected_device):
             # The hosted demo's devices are simulated (see the demo seed): no agent exists to pick a rescan up, so say so
             # instead of claiming a request was sent.
             st.info(

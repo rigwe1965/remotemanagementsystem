@@ -2,6 +2,7 @@ import streamlit as st
 from utils.auth import require_auth
 from utils.nav import render_sidebar
 from utils.ai_assistant import render_ai_assistant
+from utils.demo import is_simulated, demo_note
 from utils.formatters import fmt_datetime
 from utils.styles import inject_css, badge, BRAND, stat_card
 from utils.sanitize import esc
@@ -42,6 +43,7 @@ with tab1:
         dev_data, _ = client.list_devices(per_page=200)
         devices = dev_data.get("items", []) if dev_data else []
         device_options = {d["hostname"]: d["id"] for d in devices if d.get("is_online")}
+        simulated_ids = {d["id"] for d in devices if is_simulated(d)}   # hosted-demo devices: no agent to run a script
 
         # Search filter
         search = st.text_input("Search scripts", placeholder="Filter by name or description…", label_visibility="visible")
@@ -91,11 +93,15 @@ with tab1:
                                 st.warning("Select at least one device")
                             else:
                                 device_ids = [device_options[d] for d in selected_devs]
-                                result, run_err = client.run_script(script["id"], device_ids, timeout)
-                                if run_err:
-                                    st.error(f"Failed: {run_err}")
-                                else:
-                                    st.success(f"Queued on {result.get('queued', 0)} device(s)")
+                                real_ids = [i for i in device_ids if i not in simulated_ids]
+                                if len(real_ids) < len(device_ids):
+                                    st.info(demo_note("run a script"))
+                                if real_ids:
+                                    result, run_err = client.run_script(script["id"], real_ids, timeout)
+                                    if run_err:
+                                        st.error(f"Failed: {run_err}")
+                                    else:
+                                        st.success(f"Queued on {result.get('queued', 0)} device(s)")
 
                     # Script content preview (collapsed)
                     if script.get("content"):
