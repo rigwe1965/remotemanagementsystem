@@ -400,6 +400,9 @@ RemoteManagementSystem/
 
 ---
 
-## License
+## Contributing, security and licence
 
-Internal use only. Not licensed for redistribution.
+Work on a branch and open a pull request. `main` is protected: the four CI checks (Backend Tests, Agent Tests, Dashboard Tests, Frontend Build) must pass. Add user-visible changes to [CHANGELOG.md](CHANGELOG.md). To report a security problem, read [SECURITY.md](SECURITY.md). Past reviews are in `audits/`.
+
+All rights reserved. See [LICENSE](LICENSE). A deployment licence is checked offline from a signed key (`LICENCE_ENFORCEMENT=1`; see `api/utils/licence.py`).
+
