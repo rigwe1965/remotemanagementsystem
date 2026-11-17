@@ -43,3 +43,29 @@ class TestSoftwarePatchesPage:
             at.run()
         assert not at.exception
         assert any("Could not load devices" in w.value for w in at.warning)
+
+
+_DEMO_DEVICE = {"id": "d2", "hostname": "DEMO-HOST-1", "is_online": True, "is_agentless": False, "agent_version": "demo-simulated"}
+
+
+def _click_check_for_updates(device):
+    at = _authenticated_app_test("../pages/13_Software_Patches.py")
+    with patch("utils.api_client.RMMClient.list_devices", return_value=({"items": [device]}, None)),          patch("utils.api_client.RMMClient.get_device_software", return_value=([], None)),          patch("utils.api_client.RMMClient.queue_device_task", return_value=({}, None)) as queue,          patch("streamlit.page_link"):
+        at.run()
+        next(b for b in at.button if b.label == "Check for Updates").click().run()
+    return at, queue
+
+
+class TestCheckForUpdates:
+    def test_demo_device_explains_instead_of_queueing(self):
+        at, queue = _click_check_for_updates(_DEMO_DEVICE)
+        assert not at.exception
+        assert any("demo device" in i.value and "simulated" in i.value for i in at.info)
+        assert not any("Rescan requested" in s.value for s in at.success)
+        queue.assert_not_called()
+
+    def test_real_device_still_queues_a_rescan(self):
+        at, queue = _click_check_for_updates(_ONLINE_DEVICE)
+        assert not at.exception
+        queue.assert_called_once_with("d1", "software_rescan", timeout=120)
+        assert any("Rescan requested" in s.value for s in at.success)
