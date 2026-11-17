@@ -172,3 +172,31 @@ class TestTerminal:
         assert not at.exception
         create.assert_called_once_with("real1")
         send.assert_called_once_with("sess-1", "whoami")
+
+
+class TestDevicesPage:
+    def _click(self, simulated, label):
+        at = _app("../pages/04_Devices.py")
+        dev = _device(simulated, customer_name="Acme Corp")
+        with patch(C + "list_devices", return_value=({"items": [dev]}, None)),              patch(C + "get_platform_counts", return_value=({"by_platform": {"windows": 1}, "agentless": 0}, None)),              patch(C + "get_agent_update_info", return_value=({}, None)),              patch(C + "list_customers", return_value=({"items": [{"id": "c1", "name": "Acme Corp"}]}, None)),              patch(C + "get_device_metrics", return_value=({}, None)),              patch(C + "assistant_get_conversation", return_value=(None, "skip")),              patch(C + "reboot_device", return_value=({}, None)) as reboot,              patch(C + "shutdown_device", return_value=({}, None)) as shutdown, patch("streamlit.page_link"):
+            at.run(timeout=30)
+            next(b for b in at.button if b.label == label).click().run(timeout=30)
+        return at, reboot, shutdown
+
+    def test_simulated_reboot_and_shutdown_are_not_sent(self):
+        at, reboot, shutdown = self._click(True, "Reboot")
+        assert not at.exception
+        assert "demo device" in _infos(at) and "reboot" in _infos(at)
+        assert not any("queued" in s.value for s in at.success)
+        reboot.assert_not_called()
+        at, reboot, shutdown = self._click(True, "Shutdown")
+        assert "demo device" in _infos(at) and "shut down" in _infos(at)
+        shutdown.assert_not_called()
+
+    def test_real_device_reboot_and_shutdown_still_sent(self):
+        at, reboot, _ = self._click(False, "Reboot")
+        reboot.assert_called_once_with("real1")
+        assert any("Reboot queued" in s.value for s in at.success)
+        at, _, shutdown = self._click(False, "Shutdown")
+        shutdown.assert_called_once_with("real1")
+
