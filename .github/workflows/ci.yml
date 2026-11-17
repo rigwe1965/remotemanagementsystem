@@ -199,6 +199,15 @@ jobs:
         # react-router-dom; 2 moderate) were all fixed by `npm audit fix` (no
         # --force, no major bumps — patch-level within existing package.json
         # ranges, verified with the full test/build/E2E suite). Now enforced.
+        #
+        # Enforced on what SHIPS (--omit=dev). 2026-11-17: GHSA-fc5q-39xc-vjpf (picomatch ReDoS, <= 4.0.7, no patched
+        # release exists) reaches us only through vite/vitest, i.e. test and build tooling, and failed every PR. Dev
+        # tooling is still scanned by the next step, which reports but does not block.
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Dependency scan incl. dev tooling (informational)
+        working-directory: frontend
+        continue-on-error: true
         run: npm audit --audit-level=high
 
       - name: Run tests
