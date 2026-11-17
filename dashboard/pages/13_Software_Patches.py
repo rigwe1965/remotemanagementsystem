@@ -91,6 +91,13 @@ with left_col:
     if st.button("Check for Updates", icon=":material/refresh:", width='stretch'):
         if not selected_device:
             st.warning("Select a device first.")
+        elif selected_device.get("agent_version") == "demo-simulated":
+            # The hosted demo's devices are simulated (see the demo seed): no agent exists to pick a rescan up, so say so
+            # instead of claiming a request was sent.
+            st.info(
+                "This is a demo device, so it is simulated and has no live agent to rescan. On a real device the agent "
+                "reports its updated software list within a few seconds."
+            )
         else:
             _, qerr = client.queue_device_task(selected_device["id"], "software_rescan", timeout=120)
             if qerr:
