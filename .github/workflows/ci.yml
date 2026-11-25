@@ -6,6 +6,16 @@ on:
   pull_request:
     branches: [main]
 
+# A newer push to the same pull request cancels the older run, so only the latest commit uses Actions minutes
+# (they count against the free allowance once the repository is private). Runs on main and develop are never cancelled.
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+# The workflow only reads the repository.
+permissions:
+  contents: read
+
 jobs:
   # Backend: pytest
   test-backend:
