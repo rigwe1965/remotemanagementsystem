@@ -25,7 +25,7 @@ from models.ticket import Ticket
 from models.triage_category import TriageCategory
 from models.audit import AuditLog
 from services.ai_prompt import danger_scan  # noqa: F401 (re-exported for routes/ticket_triage.py)
-from utils.ai_client import NO_FORCED_TOOL_CHOICE, get_anthropic_client, get_model, tool_choice_for
+from utils.ai_client import DEFAULT_MODEL, NO_FORCED_TOOL_CHOICE, get_anthropic_client, get_model, tool_choice_for
 from utils.rate_limit import check_and_increment
 from utils.usage_tracker import record_event
 
@@ -235,7 +235,7 @@ def run_triage(ticket_id: str):
         return
 
     system_prompt, user_content = build_triage_prompt(ticket)
-    model = get_model("AI_TRIAGE_MODEL", get_model("AI_ASSISTANT_MODEL", "claude-haiku-4-5-20251001"))
+    model = get_model("AI_TRIAGE_MODEL", get_model("AI_ASSISTANT_MODEL", DEFAULT_MODEL))
     max_tokens = int(os.getenv("AI_TRIAGE_MAX_TOKENS", "500"))
 
     _t0 = time.perf_counter()
