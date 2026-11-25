@@ -1582,7 +1582,7 @@ Additional hardening:
     │  _build_system_prompt(role, page, context)
     │  anthropic.Anthropic(api_key=...).messages.create(...)
     ▼
-[Anthropic API — claude-haiku-4-5-20251001]
+[Anthropic API — claude-haiku-5-5 by default]
     │  reply text + suggested_actions list
     ▼
 [Streamlit sidebar chat panel]
@@ -1729,7 +1729,7 @@ The widget renders inside `with st.sidebar:` — no layout columns needed.
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
 | `ANTHROPIC_API_KEY` | Yes | — | Anthropic API key (`sk-ant-api03-...`) |
-| `AI_ASSISTANT_MODEL` | No | `claude-haiku-4-5-20251001` | Model ID |
+| `AI_ASSISTANT_MODEL` | No | `claude-haiku-5-5` | Model ID |
 | `AI_ASSISTANT_ENABLED` | No | `true` | Set `false` to disable without removing code |
 
 ### Dependency

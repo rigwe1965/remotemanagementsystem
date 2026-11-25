@@ -202,7 +202,7 @@ Copy `.env.example` to `api/.env` and fill in:
 | `SUPERADMIN_EMAIL` | — | Default: `superadmin@rmm.local` |
 | `SMTP_HOST` | — | Omit to disable email alerts |
 | `ANTHROPIC_API_KEY` | — | Enables AI Assistant (Claude Haiku 4.5). Omit to disable. |
-| `AI_ASSISTANT_MODEL` | — | Default: `claude-haiku-4-5-20251001` |
+| `AI_ASSISTANT_MODEL` | — | Default: `claude-haiku-5-5` |
 | `AI_ASSISTANT_ENABLED` | — | Default: `true`. Set `false` to hide widget. |
 | `AI_ASSISTANT_COST_PER_1M_INPUT` / `_OUTPUT` | — | $ per 1M tokens, used only to display an estimated cost on the superadmin Usage Monitoring page/report. Defaults: `1.00` / `5.00`. |
 | `BACKUP_DIR` | — | Directory for nightly DB backups. Default: `../backups` |

@@ -23,6 +23,9 @@ SUPPORTED_MODELS = {
 # Models that refuse tool_choice {"type": "tool"} / {"type": "any"} (HTTP 400, checked live 2026-11-16). For these the caller
 # asks with tool_choice "auto" and says in the prompt that the tool must be used.
 NO_FORCED_TOOL_CHOICE = frozenset({"claude-sonnet-5-5", "claude-opus-5-5"})
+# The model when AI_ASSISTANT_MODEL / AI_TRIAGE_MODEL are unset: the one place this default is written. Haiku 5.5 is the
+# cheapest supported model (a tenth of Haiku 4.5's price above) and accepts a forced tool_choice, which triage uses.
+DEFAULT_MODEL = "claude-haiku-5-5"
 _warned = set()
 
 
