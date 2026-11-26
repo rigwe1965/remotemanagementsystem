@@ -159,9 +159,9 @@ def chat():
     final_text = None
 
     try:
-        from utils.ai_client import get_anthropic_client, get_model
+        from utils.ai_client import DEFAULT_MODEL, get_anthropic_client, get_model
         client = get_anthropic_client()
-        model = get_model("AI_ASSISTANT_MODEL", "claude-haiku-4-5-20251001")
+        model = get_model("AI_ASSISTANT_MODEL", DEFAULT_MODEL)
 
         for _ in range(_MAX_TOOL_ITERATIONS):
             create_kwargs = dict(model=model, max_tokens=_MAX_TOKENS, system=system_prompt, messages=messages)

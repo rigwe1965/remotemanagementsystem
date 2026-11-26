@@ -1,13 +1,7 @@
-import os
 import io
 import time
-import smtplib
 import logging
 from datetime import datetime, timezone, timedelta
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from email.mime.base import MIMEBase
-from email import encoders
 
 from flask import Blueprint, request, jsonify, Response
 from flask_jwt_extended import jwt_required, get_jwt
@@ -17,6 +11,7 @@ from models.customer import Customer
 from models.device import Device
 from utils.validation import validate_body
 from utils.usage_tracker import record_event
+from utils.mailer import smtp_settings, send_email
 from schemas.billing import GenerateInvoiceSchema, InvoiceStatusSchema
 from utils.auth_decorators import require_role as _require_role
 from utils.scope import require_customer_scope
@@ -176,8 +171,8 @@ def send_invoice_email(invoice_id):
     if not customer.email:
         return jsonify({"error": "Customer has no email address on file"}), 400
 
-    smtp_host = os.getenv("SMTP_HOST", "")
-    if not smtp_host:
+    cfg = smtp_settings(default_from="billing@localhost")
+    if not cfg:
         return jsonify({"error": "SMTP not configured — set SMTP_HOST in .env to enable email delivery"}), 503
 
     from models.org_settings import OrgSettings
@@ -188,11 +183,6 @@ def send_invoice_email(invoice_id):
 
     inv_num = invoice.invoice_number or invoice.id[:8]
     company_name = org.company_name or "RMM System"
-    smtp_port = int(os.getenv("SMTP_PORT", "587"))
-    smtp_user = os.getenv("SMTP_USER", "")
-    smtp_pass = os.getenv("SMTP_PASS", "")
-    smtp_from = os.getenv("SMTP_FROM", smtp_user or "billing@localhost")
-
     subject = f"Invoice {inv_num} from {company_name}"
     body_html = f"""
 <p>Dear {customer.name},</p>
@@ -209,25 +199,8 @@ def send_invoice_email(invoice_id):
 
     _t0 = time.perf_counter()
     try:
-        msg = MIMEMultipart()
-        msg["From"] = smtp_from
-        msg["To"] = customer.email
-        msg["Subject"] = subject
-        msg.attach(MIMEText(body_html, "html"))
-
-        part = MIMEBase("application", "pdf")
-        part.set_payload(pdf_bytes)
-        encoders.encode_base64(part)
-        part.add_header("Content-Disposition", f'attachment; filename="invoice-{inv_num}.pdf"')
-        msg.attach(part)
-
-        with smtplib.SMTP(smtp_host, smtp_port, timeout=20) as server:
-            server.ehlo()
-            if smtp_port != 25:
-                server.starttls()
-            if smtp_user:
-                server.login(smtp_user, smtp_pass)
-            server.sendmail(smtp_from, [customer.email], msg.as_string())
+        send_email(cfg, subject, body_html, [customer.email], subtype="html", timeout=20,
+                   attachments=[(f"invoice-{inv_num}.pdf", pdf_bytes, "application/pdf")])
 
         logger.info("Invoice %s emailed to %s", inv_num, customer.email)
         record_event(service="smtp", feature="invoice_email", status="success",

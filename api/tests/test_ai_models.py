@@ -92,3 +92,26 @@ def test_triage_request_adapts_to_the_chosen_model(app, monkeypatch):
     assert sent.get("model") == "claude-opus-5-5"
     assert sent.get("tool_choice") == {"type": "auto"}
     assert "categorize_ticket" in sent.get("system", "")
+
+
+def test_the_default_model_is_haiku_5_5_and_can_be_forced_to_use_a_tool():
+    assert ai_client.DEFAULT_MODEL == "claude-haiku-5-5"
+    assert ai_client.DEFAULT_MODEL in ai_client.SUPPORTED_MODELS
+    assert ai_client.tool_choice_for(ai_client.DEFAULT_MODEL, "t") == {"type": "tool", "name": "t"}, "triage forces its tool"
+    assert ai_client.model_price(ai_client.DEFAULT_MODEL) == min(ai_client.SUPPORTED_MODELS.values())
+
+
+def test_no_api_code_writes_its_own_default_model():
+    """The default lives in utils/ai_client.py only (DEFAULT_MODEL), so it cannot drift between the assistant, triage and
+    the usage costing again (they all said claude-haiku-4-5-20251001 before)."""
+    import re
+    from pathlib import Path
+    api = Path(__file__).resolve().parents[1]
+    offenders = []
+    for path in api.rglob("*.py"):
+        rel = path.relative_to(api)
+        if rel.parts[0] in ("tests", "venv", ".venv") or rel == Path("utils/ai_client.py"):
+            continue
+        if re.search(r"""["']claude-(haiku|sonnet|opus)-[0-9a-z.-]+["']""", path.read_text(encoding="utf-8", errors="replace")):
+            offenders.append(str(rel))
+    assert offenders == []
