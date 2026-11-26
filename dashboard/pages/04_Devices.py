@@ -7,6 +7,7 @@ import pandas as pd
 from utils.auth import require_auth
 from utils.nav import render_sidebar
 from utils.ai_assistant import render_ai_assistant
+from utils.demo import is_simulated, demo_note
 from utils.styles import inject_css, badge, plotly_layout, BRAND, STATUS_COLORS
 from utils.formatters import fmt_datetime, fmt_uptime, pct_color
 from utils.sanitize import esc
@@ -545,12 +546,18 @@ def _render_agent_row(device: dict, tab_key: str = "", latest_version: str = "")
             show_hist = st.button("Metrics History", icon=":material/bar_chart:", key=f"hist_{tab_key}_{device['id']}")
         with ab2:
             if is_online and st.button("Reboot", icon=":material/restart_alt:", key=f"reboot_{tab_key}_{device['id']}"):
-                _, e = client.reboot_device(device["id"])
-                st.error(e) if e else st.success("Reboot queued")
+                if is_simulated(device):   # hosted-demo device: no agent exists to reboot
+                    st.info(demo_note("reboot"))
+                else:
+                    _, e = client.reboot_device(device["id"])
+                    st.error(e) if e else st.success("Reboot queued")
         with ab3:
             if is_online and st.button("Shutdown", icon=":material/power_settings_new:", key=f"shut_{tab_key}_{device['id']}"):
-                _, e = client.shutdown_device(device["id"])
-                st.error(e) if e else st.success("Shutdown queued")
+                if is_simulated(device):
+                    st.info(demo_note("shut down"))
+                else:
+                    _, e = client.shutdown_device(device["id"])
+                    st.error(e) if e else st.success("Shutdown queued")
 
         if show_hist:
             st.session_state["selected_device_id"] = device["id"]

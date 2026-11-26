@@ -7,6 +7,8 @@ from extensions import db, limiter
 from models.user import User
 from models.department import Department
 from models.audit import AuditLog
+from utils import login_guard
+from utils.licence import check_can_add
 from utils.password import password_error_response
 from utils.validation import validate_body
 from utils.pagination import paginated_response
@@ -85,6 +87,12 @@ def create_user():
         return jsonify({"error": msg}), 400
     if User.query.filter_by(email=email).first():
         return jsonify({"error": "Email already in use"}), 409
+
+    # Client-portal accounts belong to the customer's own people and are not counted; staff accounts are.
+    if role != "client":
+        blocked = check_can_add("users")
+        if blocked:
+            return blocked
 
     must_change = bool(data.get("must_change_password", False))
     user = User(
@@ -227,6 +235,7 @@ def unlock_user(user_id):
     user.is_locked = False
     user.locked_until = None
     user.failed_login_attempts = 0
+    login_guard.record_unlock(user.id, request.remote_addr)  # also clears the per-address counts
     _audit("UNLOCK", admin.id, resource_id=user_id, payload={"email": user.email})
     db.session.commit()
     return jsonify({"message": "Account unlocked", "user": user.to_dict()})

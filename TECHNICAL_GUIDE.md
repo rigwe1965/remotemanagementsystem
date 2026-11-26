@@ -1414,7 +1414,7 @@ COLLECTORS = {
 | DB credentials in env | `.env` in `.gitignore`. Never committed. |
 | Report file exposure | `api/reports/` not served via HTTP. Download reads bytes directly in dashboard. |
 | SMTP credential exposure | `SMTP_PASS` read from env only. Never logged. |
-| Superadmin lockout | Auto-seeded at every API startup — account always exists. Emergency password reset: `cd api ; python reset_superadmin.py <new_password>` |
+| Superadmin lockout | Auto-seeded at every API startup — account always exists. Emergency password reset: `cd api ; python reset_superadmin.py` (asks for the password hidden, or `--generate`; updates `SUPERADMIN_PASSWORD` in `.env`, which the API re-applies at every start) |
 
 ### Production Checklist
 
@@ -1582,7 +1582,7 @@ Additional hardening:
     │  _build_system_prompt(role, page, context)
     │  anthropic.Anthropic(api_key=...).messages.create(...)
     ▼
-[Anthropic API — claude-haiku-4-5-20251001]
+[Anthropic API — claude-haiku-5-5 by default]
     │  reply text + suggested_actions list
     ▼
 [Streamlit sidebar chat panel]
@@ -1729,7 +1729,7 @@ The widget renders inside `with st.sidebar:` — no layout columns needed.
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
 | `ANTHROPIC_API_KEY` | Yes | — | Anthropic API key (`sk-ant-api03-...`) |
-| `AI_ASSISTANT_MODEL` | No | `claude-haiku-4-5-20251001` | Model ID |
+| `AI_ASSISTANT_MODEL` | No | `claude-haiku-5-5` | Model ID |
 | `AI_ASSISTANT_ENABLED` | No | `true` | Set `false` to disable without removing code |
 
 ### Dependency
@@ -2332,3 +2332,23 @@ Originally scoped as a multi-week project on the assumption that a 7-package/55-
 ### 22.8 Cross-referenced, not re-scored here
 
 Two findings from earlier audit passes this same week are the most severe security-relevant issues found across the whole audit series and are called out here for a reader who only opens this chapter: the **cross-session cache leak in `dashboard/utils/cached_calls.py`** (Chapter 18, and `audits/testing_audit.md` "bugs found" #8) and the **`admin.py` pagination key bug** (Chapter 21). Neither is re-scored in `security_audit.md` since both were already fixed and reverified before that audit ran.
+
+---
+
+## 23. Licence
+
+An optional, signed licence says how many **devices** and **staff accounts** a deployment is entitled to. It is for deployments that are sold one copy per customer; the hosted demo and any deployment without it are unaffected.
+
+**Off by default.** Nothing is checked unless `LICENCE_ENFORCEMENT=1`. Set the licence text in `LICENCE_KEY`, or its file path in `LICENCE_FILE` (re-read when the file changes, so a renewal needs no restart). `LICENCE_PUBLIC_KEYS` adds public keys besides the owner's, which goes in `BUILT_IN_PUBLIC_KEYS` in `api/utils/licence.py`.
+
+**Format.** One line, `FKL1.<payload>.<signature>`: a small JSON document (licence id, product `rmm`, customer, tier, limits such as `{"devices": 250, "users": 25}`, start and end dates) signed with the owner's Ed25519 key. The signature is checked offline. The owner makes licences with `licensing/cli.mjs` in the ProjectsDashboard repository; `api/tests/fixtures/licence-test-vectors.json` is a copy of the shared test vectors that `api/utils/licence.py` and the owner's reference implementation must both satisfy.
+
+**What it does.** `utils.licence.check_can_add("devices" | "users")` runs at the three places something is added: a NEW agent registering (`POST /api/agents/register`; a device already registered always gets through), a device added by hand (`POST /api/devices/`), and a new staff account (`POST /api/admin/users`; client-portal accounts are not counted). It answers HTTP 402 with `code` `LICENCE_LIMIT`, `LICENCE_LAPSED` or `LICENCE_REQUIRED` and a plain message. Nothing that exists is switched off: signed-in people, registered agents, data and every feature carry on.
+
+**States** (`evaluate`): `active`; `expiring` (within 30 days of the end date, banner starts); `grace` (up to 30 days after the end, adding still works); `lapsed` (more than 30 days after, no more can be added). A licence that is not genuine, is for another product, or is missing counts as none (`unlicensed`).
+
+**Counted.** Devices: every row in `devices` (agent or agentless). Users: active accounts with role `admin`, `technician` or `viewer` (not `client`, not `superadmin`).
+
+**Status.** `GET /api/admin/licence/status` (admin and superadmin) returns the state, limits, usage and the banner text; never the licence itself. The web UI shows the banner (`LicenceBanner`) to admins only, and only when something needs saying.
+
+**Not copy protection.** Whoever runs the product controls its machine. The licence records what the customer is entitled to; the contract, support and updates are what make paying worthwhile.

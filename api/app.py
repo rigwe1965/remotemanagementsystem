@@ -55,6 +55,11 @@ def create_app(config_name=None):
     app = Flask(__name__)
     app.config.from_object(config_map.get(config_name, config_map["default"]))
 
+    # Behind a reverse proxy, use the visitor's address (TRUSTED_PROXY_COUNT, default 0 = unchanged) so rate limits, the audit log
+    # and the sign-in lockout work per person instead of per proxy. See utils/client_ip.py.
+    from utils.client_ip import apply_proxy_fix
+    apply_proxy_fix(app)
+
     # Extensions
     db.init_app(app)
     migrate.init_app(app, db)
@@ -227,6 +232,7 @@ def create_app(config_name=None):
     from routes.psa import psa_bp
     from routes.mobile_mdm import mobile_mdm_bp
     from routes.usage import usage_bp
+    from routes.licence import licence_bp
     from routes.ticket_triage import ticket_triage_bp, _triage_categories_bp
 
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
@@ -254,6 +260,7 @@ def create_app(config_name=None):
     app.register_blueprint(psa_bp, url_prefix="/api/psa")
     app.register_blueprint(mobile_mdm_bp, url_prefix="/api/mdm")
     app.register_blueprint(usage_bp, url_prefix="/api/admin/usage")
+    app.register_blueprint(licence_bp, url_prefix="/api/admin/licence")
     app.register_blueprint(ticket_triage_bp, url_prefix="/api/tickets")
     app.register_blueprint(_triage_categories_bp, url_prefix="/api/triage/categories")
 
@@ -404,4 +411,6 @@ if __name__ == "__main__":
     else:
         from waitress import serve
         print(f" * Serving on http://{host}:{port} (waitress)")
-        serve(app, host=host, port=port, threads=16)
+        from utils.client_ip import waitress_options
+        # Waitress drops X-Forwarded-For unless told otherwise, which would make TRUSTED_PROXY_COUNT a no-op (utils/client_ip.py).
+        serve(app, host=host, port=port, threads=16, **waitress_options())

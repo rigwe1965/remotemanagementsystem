@@ -1,11 +1,9 @@
-"""Email notification utility — reads SMTP config from .env."""
+"""Email notification utility. SMTP settings and sending live in utils/mailer.py; this file holds the messages."""
 import os
 import time
-import smtplib
 import logging
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 
+from utils.mailer import smtp_settings, send_email
 from utils.usage_tracker import record_event
 
 logger = logging.getLogger(__name__)
@@ -13,30 +11,12 @@ logger = logging.getLogger(__name__)
 
 def _smtp_send(subject: str, body: str, recipients: list, extra_headers: dict = None) -> bool:
     """Shared SMTP sender. Silently skips if SMTP_HOST not set or recipients empty."""
-    smtp_host = os.getenv("SMTP_HOST", "")
-    if not smtp_host or not recipients:
+    cfg = smtp_settings()
+    if not cfg or not recipients:
         return False
-    smtp_port = int(os.getenv("SMTP_PORT", "587"))
-    smtp_user = os.getenv("SMTP_USER", "")
-    smtp_pass = os.getenv("SMTP_PASSWORD", "")
-    smtp_from = os.getenv("SMTP_FROM", smtp_user or "rmm@localhost")
     _t0 = time.perf_counter()
     try:
-        msg = MIMEMultipart()
-        msg["From"] = smtp_from
-        msg["To"] = ", ".join(recipients)
-        msg["Subject"] = subject
-        if extra_headers:
-            for k, v in extra_headers.items():
-                msg[k] = v
-        msg.attach(MIMEText(body, "plain"))
-        with smtplib.SMTP(smtp_host, smtp_port, timeout=15) as server:
-            server.ehlo()
-            if smtp_port != 25:
-                server.starttls()
-            if smtp_user:
-                server.login(smtp_user, smtp_pass)
-            server.sendmail(smtp_from, recipients, msg.as_string())
+        send_email(cfg, subject, body, recipients, extra_headers=extra_headers)
         record_event(service="smtp", feature=subject[:100], status="success",
                      latency_ms=int((time.perf_counter() - _t0) * 1000))
         return True
@@ -62,15 +42,10 @@ def send_alert_notification(rule_name: str, device_hostname: str, message: str, 
     if not emails:
         return True
 
-    smtp_host = os.getenv("SMTP_HOST", "")
-    if not smtp_host:
+    cfg = smtp_settings()
+    if not cfg:
         logger.info("SMTP_HOST not set — skipping alert notification for: %s", rule_name)
         return False
-
-    smtp_port = int(os.getenv("SMTP_PORT", "587"))
-    smtp_user = os.getenv("SMTP_USER", "")
-    smtp_pass = os.getenv("SMTP_PASSWORD", "")
-    smtp_from = os.getenv("SMTP_FROM", smtp_user or "rmm@localhost")
 
     subject = f"[RMM Alert] {rule_name} — {device_hostname}"
     body = (
@@ -82,20 +57,7 @@ def send_alert_notification(rule_name: str, device_hostname: str, message: str, 
     )
 
     try:
-        msg = MIMEMultipart()
-        msg["From"] = smtp_from
-        msg["To"] = ", ".join(emails)
-        msg["Subject"] = subject
-        msg.attach(MIMEText(body, "plain"))
-
-        with smtplib.SMTP(smtp_host, smtp_port, timeout=15) as server:
-            server.ehlo()
-            if smtp_port != 25:
-                server.starttls()
-            if smtp_user:
-                server.login(smtp_user, smtp_pass)
-            server.sendmail(smtp_from, emails, msg.as_string())
-
+        send_email(cfg, subject, body, emails)
         logger.info("Alert notification sent for rule '%s' to %d recipient(s)", rule_name, len(emails))
         return True
     except Exception as exc:
@@ -108,15 +70,10 @@ def send_account_locked_email(locked_email: str, admin_emails: list) -> bool:
     if not admin_emails:
         return True
 
-    smtp_host = os.getenv("SMTP_HOST", "")
-    if not smtp_host:
+    cfg = smtp_settings()
+    if not cfg:
         logger.info("SMTP_HOST not set — skipping account locked notification for: %s", locked_email)
         return False
-
-    smtp_port = int(os.getenv("SMTP_PORT", "587"))
-    smtp_user = os.getenv("SMTP_USER", "")
-    smtp_pass = os.getenv("SMTP_PASSWORD", "")
-    smtp_from = os.getenv("SMTP_FROM", smtp_user or "rmm@localhost")
 
     subject = f"[RMM Security] Account locked: {locked_email}"
     body = (
@@ -130,20 +87,7 @@ def send_account_locked_email(locked_email: str, admin_emails: list) -> bool:
     )
 
     try:
-        msg = MIMEMultipart()
-        msg["From"] = smtp_from
-        msg["To"] = ", ".join(admin_emails)
-        msg["Subject"] = subject
-        msg.attach(MIMEText(body, "plain"))
-
-        with smtplib.SMTP(smtp_host, smtp_port, timeout=15) as server:
-            server.ehlo()
-            if smtp_port != 25:
-                server.starttls()
-            if smtp_user:
-                server.login(smtp_user, smtp_pass)
-            server.sendmail(smtp_from, admin_emails, msg.as_string())
-
+        send_email(cfg, subject, body, admin_emails)
         logger.info("Account locked notification sent for '%s' to %d admin(s)", locked_email, len(admin_emails))
         return True
     except Exception as exc:
@@ -153,15 +97,10 @@ def send_account_locked_email(locked_email: str, admin_emails: list) -> bool:
 
 def send_password_reset_email(to_email: str, reset_url: str) -> bool:
     """Send a password reset link to the user. Silently skips if SMTP not configured."""
-    smtp_host = os.getenv("SMTP_HOST", "")
-    if not smtp_host:
+    cfg = smtp_settings()
+    if not cfg:
         logger.info("SMTP_HOST not set — skipping password reset email for: %s", to_email)
         return False
-
-    smtp_port = int(os.getenv("SMTP_PORT", "587"))
-    smtp_user = os.getenv("SMTP_USER", "")
-    smtp_pass = os.getenv("SMTP_PASSWORD", "")
-    smtp_from = os.getenv("SMTP_FROM", smtp_user or "rmm@localhost")
 
     subject = "[RMM] Password reset request"
     body = (
@@ -175,20 +114,7 @@ def send_password_reset_email(to_email: str, reset_url: str) -> bool:
     )
 
     try:
-        msg = MIMEMultipart()
-        msg["From"] = smtp_from
-        msg["To"] = to_email
-        msg["Subject"] = subject
-        msg.attach(MIMEText(body, "plain"))
-
-        with smtplib.SMTP(smtp_host, smtp_port, timeout=15) as server:
-            server.ehlo()
-            if smtp_port != 25:
-                server.starttls()
-            if smtp_user:
-                server.login(smtp_user, smtp_pass)
-            server.sendmail(smtp_from, [to_email], msg.as_string())
-
+        send_email(cfg, subject, body, [to_email])
         logger.info("Password reset email sent to '%s'", to_email)
         return True
     except Exception as exc:
@@ -198,14 +124,9 @@ def send_password_reset_email(to_email: str, reset_url: str) -> bool:
 
 def send_login_anomaly_alert(user_email: str, ip: str, admin_emails: list) -> bool:
     """Alert user + admins when login occurs from an unrecognised IP address."""
-    smtp_host = os.getenv("SMTP_HOST", "")
-    if not smtp_host:
+    cfg = smtp_settings()
+    if not cfg:
         return False
-
-    smtp_port = int(os.getenv("SMTP_PORT", "587"))
-    smtp_user = os.getenv("SMTP_USER", "")
-    smtp_pass = os.getenv("SMTP_PASSWORD", "")
-    smtp_from = os.getenv("SMTP_FROM", smtp_user or "rmm@localhost")
 
     subject = f"[RMM Security] New login location detected: {user_email}"
     body = (
@@ -219,20 +140,7 @@ def send_login_anomaly_alert(user_email: str, ip: str, admin_emails: list) -> bo
 
     recipients = list({user_email} | set(admin_emails))
     try:
-        msg = MIMEMultipart()
-        msg["From"] = smtp_from
-        msg["To"] = ", ".join(recipients)
-        msg["Subject"] = subject
-        msg.attach(MIMEText(body, "plain"))
-
-        with smtplib.SMTP(smtp_host, smtp_port, timeout=15) as server:
-            server.ehlo()
-            if smtp_port != 25:
-                server.starttls()
-            if smtp_user:
-                server.login(smtp_user, smtp_pass)
-            server.sendmail(smtp_from, recipients, msg.as_string())
-
+        send_email(cfg, subject, body, recipients)
         logger.info("Login anomaly alert sent for '%s' from IP %s", user_email, ip)
         return True
     except Exception as exc:
@@ -242,14 +150,9 @@ def send_login_anomaly_alert(user_email: str, ip: str, admin_emails: list) -> bo
 
 def send_account_deactivated_email(to_email: str) -> bool:
     """Notify user their account was auto-deactivated due to 30 days inactivity."""
-    smtp_host = os.getenv("SMTP_HOST", "")
-    if not smtp_host:
+    cfg = smtp_settings()
+    if not cfg:
         return False
-
-    smtp_port = int(os.getenv("SMTP_PORT", "587"))
-    smtp_user = os.getenv("SMTP_USER", "")
-    smtp_pass = os.getenv("SMTP_PASSWORD", "")
-    smtp_from = os.getenv("SMTP_FROM", smtp_user or "rmm@localhost")
 
     subject = "[RMM] Your account has been deactivated"
     body = (
@@ -261,20 +164,7 @@ def send_account_deactivated_email(to_email: str) -> bool:
     )
 
     try:
-        msg = MIMEMultipart()
-        msg["From"] = smtp_from
-        msg["To"] = to_email
-        msg["Subject"] = subject
-        msg.attach(MIMEText(body, "plain"))
-
-        with smtplib.SMTP(smtp_host, smtp_port, timeout=15) as server:
-            server.ehlo()
-            if smtp_port != 25:
-                server.starttls()
-            if smtp_user:
-                server.login(smtp_user, smtp_pass)
-            server.sendmail(smtp_from, [to_email], msg.as_string())
-
+        send_email(cfg, subject, body, [to_email])
         logger.info("Account deactivated notification sent to '%s'", to_email)
         return True
     except Exception as exc:
@@ -286,14 +176,9 @@ def send_dormant_admin_alert(deactivated_emails: list, admin_emails: list) -> bo
     """Notify admins that dormant accounts were auto-deactivated."""
     if not admin_emails:
         return True
-    smtp_host = os.getenv("SMTP_HOST", "")
-    if not smtp_host:
+    cfg = smtp_settings()
+    if not cfg:
         return False
-
-    smtp_port = int(os.getenv("SMTP_PORT", "587"))
-    smtp_user = os.getenv("SMTP_USER", "")
-    smtp_pass = os.getenv("SMTP_PASSWORD", "")
-    smtp_from = os.getenv("SMTP_FROM", smtp_user or "rmm@localhost")
 
     subject = f"[RMM] {len(deactivated_emails)} dormant account(s) deactivated"
     account_list = "\n".join(f"  - {e}" for e in deactivated_emails)
@@ -306,20 +191,7 @@ def send_dormant_admin_alert(deactivated_emails: list, admin_emails: list) -> bo
     )
 
     try:
-        msg = MIMEMultipart()
-        msg["From"] = smtp_from
-        msg["To"] = ", ".join(admin_emails)
-        msg["Subject"] = subject
-        msg.attach(MIMEText(body, "plain"))
-
-        with smtplib.SMTP(smtp_host, smtp_port, timeout=15) as server:
-            server.ehlo()
-            if smtp_port != 25:
-                server.starttls()
-            if smtp_user:
-                server.login(smtp_user, smtp_pass)
-            server.sendmail(smtp_from, admin_emails, msg.as_string())
-
+        send_email(cfg, subject, body, admin_emails)
         logger.info("Dormant admin alert sent: %d account(s) deactivated", len(deactivated_emails))
         return True
     except Exception as exc:
@@ -329,14 +201,9 @@ def send_dormant_admin_alert(deactivated_emails: list, admin_emails: list) -> bo
 
 def send_password_expiry_warning(to_email: str, days_left: int) -> bool:
     """Warn user their password expires in N days."""
-    smtp_host = os.getenv("SMTP_HOST", "")
-    if not smtp_host:
+    cfg = smtp_settings()
+    if not cfg:
         return False
-
-    smtp_port = int(os.getenv("SMTP_PORT", "587"))
-    smtp_user = os.getenv("SMTP_USER", "")
-    smtp_pass = os.getenv("SMTP_PASSWORD", "")
-    smtp_from = os.getenv("SMTP_FROM", smtp_user or "rmm@localhost")
 
     subject = f"[RMM] Your password expires in {days_left} day(s)"
     body = (
@@ -348,20 +215,7 @@ def send_password_expiry_warning(to_email: str, days_left: int) -> bool:
     )
 
     try:
-        msg = MIMEMultipart()
-        msg["From"] = smtp_from
-        msg["To"] = to_email
-        msg["Subject"] = subject
-        msg.attach(MIMEText(body, "plain"))
-
-        with smtplib.SMTP(smtp_host, smtp_port, timeout=15) as server:
-            server.ehlo()
-            if smtp_port != 25:
-                server.starttls()
-            if smtp_user:
-                server.login(smtp_user, smtp_pass)
-            server.sendmail(smtp_from, [to_email], msg.as_string())
-
+        send_email(cfg, subject, body, [to_email])
         logger.info("Password expiry warning sent to '%s' (%d days left)", to_email, days_left)
         return True
     except Exception as exc:

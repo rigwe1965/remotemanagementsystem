@@ -4,6 +4,7 @@ import streamlit as st
 from utils.auth import require_auth
 from utils.nav import render_sidebar
 from utils.ai_assistant import render_ai_assistant
+from utils.demo import is_simulated, demo_note
 from utils.styles import inject_css, BRAND
 from utils.sanitize import esc
 
@@ -55,6 +56,10 @@ session_id = st.session_state["_term_session_id"]
 
 # ── Device selector + connect/disconnect ──────────────────────────────────────
 dev_map = {f"{d.get('hostname') or d['id']} ({d.get('platform','')})": d["id"] for d in online_agents}
+simulated_device_ids = {d["id"] for d in online_agents if is_simulated(d)}
+# A hosted-demo device has no agent, so a real session would wait forever. For those the session lives only in this page's state:
+# it "connects", echoes what is typed, and answers with a plain explanation. Nothing is sent to the API.
+DEMO_SESSION = "demo-simulated-session"
 
 top_l, top_r = st.columns([3, 1])
 with top_l:
@@ -76,7 +81,8 @@ with top_l:
 with top_r:
     if session_id:
         if st.button("Disconnect", type="secondary", width='stretch'):
-            client.close_terminal_session(session_id)
+            if session_id != DEMO_SESSION:
+                client.close_terminal_session(session_id)
             st.session_state["_term_session_id"] = None
             st.session_state["_term_device_id"] = None
             st.session_state["_term_output_seq"] = 0
@@ -85,6 +91,15 @@ with top_r:
     else:
         if st.button("Connect", type="primary", width='stretch'):
             device_id = dev_map[chosen_label]
+            if device_id in simulated_device_ids:
+                st.session_state["_term_session_id"] = DEMO_SESSION
+                st.session_state["_term_device_id"] = device_id
+                st.session_state["_term_output_seq"] = 0
+                st.session_state["_term_output_buf"] = [{
+                    "content": f"Connected to {chosen_label.split(' (')[0]} (demo). " + demo_note("run commands") + "\r\n",
+                    "stream": "system",
+                }]
+                st.rerun()
             data, err = client.create_terminal_session(device_id)
             if err:
                 st.error(f"Could not open session: {err}")
@@ -125,7 +140,10 @@ def _output_panel():
     sid = st.session_state.get("_term_session_id")
     if not sid:
         return
-    poll_data, poll_err = client.get_terminal_output(sid, after=st.session_state["_term_output_seq"])
+    if sid == DEMO_SESSION:
+        poll_data, poll_err = {"session": {}, "output": [], "pending_commands": 0}, None
+    else:
+        poll_data, poll_err = client.get_terminal_output(sid, after=st.session_state["_term_output_seq"])
     if poll_err:
         st.error(f"Session error: {poll_err}")
         st.session_state["_term_session_id"] = None
@@ -198,7 +216,13 @@ with cmd_col:
 with send_col:
     send_clicked = st.button("Send ▶", type="primary", width='stretch')
 
-if send_clicked and command.strip():
+if send_clicked and command.strip() and session_id == DEMO_SESSION:
+    st.session_state["_term_output_buf"] += [
+        {"content": f"$ {command.strip()}\r\n", "stream": "stdout"},
+        {"content": "Not run: " + demo_note("run it") + "\r\n", "stream": "system"},
+    ]
+    st.rerun()
+elif send_clicked and command.strip():
     _, err = client.send_terminal_command(session_id, command.strip())
     if err:
         st.error(f"Failed to send command: {err}")
