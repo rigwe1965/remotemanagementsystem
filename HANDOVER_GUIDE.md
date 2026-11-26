@@ -3562,7 +3562,7 @@ The AI Assistant requires an Anthropic API key. If it was not configured at init
 3. Add or update these three lines:
    ```
    ANTHROPIC_API_KEY=sk-ant-api03-...your-key-here...
-   AI_ASSISTANT_MODEL=claude-haiku-4-5-20251001
+   AI_ASSISTANT_MODEL=claude-haiku-5-5
    AI_ASSISTANT_ENABLED=true
    ```
 4. Save the file.

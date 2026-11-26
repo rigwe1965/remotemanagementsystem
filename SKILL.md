@@ -1144,7 +1144,7 @@ SMTP_PASS=your_app_password
 SMTP_FROM=rmm@yourcompany.com
 # AI Assistant
 ANTHROPIC_API_KEY=sk-ant-api03-...
-AI_ASSISTANT_MODEL=claude-haiku-4-5-20251001
+AI_ASSISTANT_MODEL=claude-haiku-5-5
 AI_ASSISTANT_ENABLED=true
 ```
 
@@ -1307,7 +1307,7 @@ pip freeze > requirements.txt
 
 ```
 ANTHROPIC_API_KEY=sk-ant-api03-...
-AI_ASSISTANT_MODEL=claude-haiku-4-5-20251001
+AI_ASSISTANT_MODEL=claude-haiku-5-5
 AI_ASSISTANT_ENABLED=true
 ```
 
