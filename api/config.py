@@ -5,9 +5,22 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
+def database_uri(url):
+    """Pin the psycopg2 driver for plain postgres URLs.
+
+    SQLAlchemy 2.1 maps a bare "postgresql://" URL to psycopg (v3), which this
+    project does not install; it uses psycopg2-binary. An explicit driver in
+    the URL is kept as it is.
+    """
+    for prefix in ("postgresql://", "postgres://"):
+        if url.startswith(prefix):
+            return "postgresql+psycopg2://" + url[len(prefix):]
+    return url
+
+
 class Config:
     SECRET_KEY = os.environ["SECRET_KEY"]
-    SQLALCHEMY_DATABASE_URI = os.environ["DATABASE_URL"]
+    SQLALCHEMY_DATABASE_URI = database_uri(os.environ["DATABASE_URL"])
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ENGINE_OPTIONS = {
         "pool_pre_ping": True,
