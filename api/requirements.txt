@@ -33,7 +33,7 @@ anthropic>=0.40.0,<2.0.0
 cachetools>=7.2.0,<8.0.0
 waitress>=3.0.0,<4.0.0
 sentry-sdk[flask]>=2.0.0,<3.0.0
-cryptography>=42.0.0,<51.0.0
+cryptography>=50.0.2,<51.0.0
 # tasks/mqtt_tasks.py uses the 1.x callback signatures (on_connect(client, userdata,
 # flags, rc), mqtt.Client() with no CallbackAPIVersion) — paho-mqtt 2.0 changed both.
 paho-mqtt>=1.6.1,<2.0.0
